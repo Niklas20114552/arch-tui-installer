@@ -20,6 +20,7 @@ chmod +x /usr/local/bin/setup
 setup
 ```
 ## Manual Installation
+### Recommended when key errors occur. (such as Invalid or broken Package (PGP-Signature)
 Download the [Archlinux ISO](https://archlinux.org/download/)
 
 In Terminal type this:
