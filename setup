@@ -1,0 +1,122 @@
+#!/usr/bin/bash
+function rootpw() {
+	p1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte geben sie das Root Passwort ein:" 8 25 3>&1 1>&2 2>&3 3>&-)
+	c1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte wiederholen sie das Root Passwort:" 8 25 3>&1 1>&2 2>&3 3>&-)
+	if [[ "$p1" == "$c1" ]]; then
+		root_pass="$o9"
+	else
+		dialog --title "Root-Passwort" --msgbox "Die Passwörter stimmen nicht überein" 5 40
+		rootpw
+	fi
+}
+function userpw() {
+	p2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte geben sie das Nutzer Passwort ein:" 8 25 3>&1 1>&2 2>&3 3>&-)
+	c2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte wiederholen sie das Nutzer Passwort:" 8 25 3>&1 1>&2 2>&3 3>&-)
+	if [[ "$p2" == "$c2" ]]; then
+		user_pass="$o9"
+	else
+		dialog --title "Root-Passwort" --msgbox "Die Passwörter stimmen nicht überein" 5 40
+		userpw
+	fi
+}
+if [[ ! -f /usr/bin/dialog ]]; then
+	echo Please install: dialog
+	exit
+fi
+mkdir -p /target
+dialog --title "Setup" --extra-button --extra-label Beenden --msgbox "Das Setup benötigt einen Internetzugang. \nBitte stellen sie Sicher, dass sie mit den Internet verbunden sind." 7 45
+if [[ $? == 3 ]]; then
+	exit
+fi
+o1=$(dialog --no-cancel --title "Tastatur-Layout" --menu "Bitte wählen sie ihr Tastatur-Layout:" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" 3>&1 1>&2 2>&3 3>&-)
+case $o1 in
+de_DE) keymap=de-latin1 ;;
+de_CH) keymap=de_CH-latin1 ;;
+esac
+loadkeys $keymap
+o2=$(dialog --no-cancel --title "Zeitzone" --menu "Bitte wählen sie ihre Zeitzone:" 23 35 5 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
+cd /usr/share/zoneinfo/$o2
+tzone=$(echo *)
+o3=$(dialog --no-cancel --no-items --title "Zeitzone" --menu "Bitte wählen sie ihre Zeitzone:" 23 35 5 $tzone 3>&1 1>&2 2>&3 3>&-)
+timezone=/usr/share/zoneinfo/$o2/$o3
+o4=$(dialog --no-cancel --title "Sprache" --menu "Bitte wählen sie ihre Sprache aus:\n\nBitte beachten sie, dass dies nicht die Sprache des Installers ändert, da dieser in der BETA ist." 20 40 5 "de_DE.UTF-8" "Deutsch" 3>&1 1>&2 2>&3 3>&-)
+case $o4 in
+de_DE.UTF8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UFT-8"
+esac
+o5=$(dialog --no-cancel --title "Hostname" --inputbox "Bitte geben sie ihren Hostname an:\n\nFalls sie einen von ihren Administrator bekommen haben, geben sie ihn hier ein:\n\nEin Hostname besteht nur aus Zahlen und Buchstaben. Keine Sonderzeichen und Leerzeichen." 13 55 3>&1 1>&2 2>&3 3>&-)
+d1=$(find /dev/sd* -not -name '*[0-9]*' | tr "\n" " ")
+d2=$(find /dev/vd* -not -name '*[0-9]*' | tr "\n" " ")
+d3=$(find /dev/hd* -not -name '*[0-9]*' | tr "\n" " ")
+drives="$d1 $d2 $d3"
+drives=$(echo $drives)
+o6=$(dialog --no-cancel --no-items --title "Laufwerke" --menu "Bitte wählen sie ihre Festplatte" 20 20 5 "$drives" 3>&1 1>&2 2>&3 3>&-)
+boot_drive=$o6
+dialog --title "Partitionierten von $boot_drive" --msgbox "Nun müssen sie ihre Platte partitionieren:\n\nSie benötigen eine Bootbare Partition des Types Linux.\nSie können auch eine Swap-Partition erstellen." 8 60
+cfdisk $boot_drive
+partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+partition=$(echo $partition)
+o7=$(dialog --no-cancel --no-items --title "Partitionen" --menu "Bitte wählen sie ROOT-Partition\n(Die Bootbare)" 20 20 5 "$partition" 3>&1 1>&2 2>&3 3>&-)
+dialog --title "Formatieren?" --default-button no --yesno "Diese Partition wird nun FORMATIERT! \nACHTUNG: Dies ZERSTÖRT ALLE DATEN! \n\nFortfahren?" 8 45
+if [[ $? == 1 ]]; then
+	dialog --title "Fehler" --msgbox "Das Setup kann nicht fortfahren, ohne die Partition zu formatieren." 6 45
+	exit
+fi
+yes | mkfs.ext4 $o7
+
+dialog --title "Swap Partition?" --yesno "Haben sie eine Swap-Partition erstellt?" 5 45
+if [[ $? == 0 ]]; then
+	o8=$(dialog --no-cancel --no-items --title "Partitionen" --menu "Bitte wählen sie SWAP-Partition" 20 20 5 "$partition" 3>&1 1>&2 2>&3 3>&-)
+	yes | mkswap $o8
+fi
+rootpw
+user_name=$(dialog --no-cancel --title "Nutzername" --inputbox "Bitte geben sie den KURZNAMEN ein: \nDieser enthält nur kleinbuchstaben und Nummern" 9 45 3>&1 1>&2 2>&3 3>&-)
+userpw
+dialog --title "Grafikkarte" --no-label AMD --yes-label Nvidia --yesno "Besitzen sie eine AMD oder Nvidia Grafikkarte?" 6 45
+if [[ $? == 1 ]]; then
+	gpu=xf86-video-amdgpu
+else
+	gpu="nvidia nvidia-utils nvidia-settings"
+fi
+dialog --title "Prozessor" --no-label AMD --yes-label Intel --yesno "Besitzen sie einen AMD oder Intel Prozessor?" 6 45
+if [[ $? == 1 ]]; then
+	cpu=amd-ucode
+else
+	cpu=intel-ucode
+fi
+cpu=amd-ucode
+dialog --title "Setup" --msgbox "Die Installation wird nun gestartet." 5 45
+
+mount "$partition" /target
+pacman --noconfirm -Sy archlinux-keyring
+
+pacstrap /target base linux linux-firmware git nano $cpu
+genfstab -U /target >> /target/etc/fstab
+
+ln -sf $timezone /target/etc/localtime
+hwclock --systohc
+echo "$locale" > /target/etc/locale.gen
+arch-chroot /target bash -c "locale-gen"
+echo "LANG=$local" > /target/etc/locale.conf
+echo "KEYMAP=$keymap" > /target/etc/vconsole.conf
+echo $o5 > /target/etc/hostname
+echo "127.0.0.1 localhost" >> /target/etc/hosts
+echo "::1       localhost" >> /target/etc/hosts
+echo "127.0.1.1 $hostname.local $hostname" >> /target/etc/hosts
+
+arch-chroot /target bash -c "yes | pacman -S iptables-nft"
+arch-chroot /target bash -c "pacman --needed --noconfirm -Sy grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget"
+arch-chroot /target bash -c "echo root:'$root_pass' | chpasswd" 
+arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive; grub-mkconfig -o /boot/grub/grub.cfg"
+arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
+arch-chroot /target bash -c "useradd -mG wheel $user_name"
+echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
+arch-chroot /target bash -c "echo $user_name:'$user_pass' | chpasswd"
+dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
+if [[ $? == 0 ]]; then
+	reboot
+fi
+
+
+
+
+
