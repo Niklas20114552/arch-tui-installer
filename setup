@@ -3,7 +3,7 @@ function rootpw() {
 	p1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte geben sie das Root Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 9 45 3>&1 1>&2 2>&3 3>&-)
 	c1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte wiederholen sie das Root Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 9 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p1" == "$c1" ]]; then
-		root_pass="$o9"
+		root_pass="$p1"
 	else
 		dialog --title "Root-Passwort" --msgbox "Die Passwörter stimmen nicht überein" 5 40
 		rootpw
@@ -13,7 +13,7 @@ function userpw() {
 	p2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte geben sie das Nutzer Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 9 45 3>&1 1>&2 2>&3 3>&-)
 	c2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte wiederholen sie das Nutzer Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p2" == "$c2" ]]; then
-		user_pass="$o9"
+		user_pass="$p2"
 	else
 		dialog --title "Root-Passwort" --msgbox "Die Passwörter stimmen nicht überein" 5 40
 		userpw
@@ -106,15 +106,19 @@ echo "127.0.1.1 $hostname.local $hostname" >> /target/etc/hosts
 
 arch-chroot /target bash -c "yes | pacman -S iptables-nft"
 arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget"
-echo "echo root'$root_pass' | chpasswd" > /target/chpasswd.sh
+echo "echo 'root:$root_pass' | chpasswd" > /target/chpasswd.sh
 arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive; grub-mkconfig -o /boot/grub/grub.cfg"
 arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
-echo "echo $user_name:'$user_pass' | chpasswd" >> /target/chpasswd.sh
+echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
 if [[ $swap == yes ]]; then
 	arch-chroot /target bash -c "swapon '$o8'"
+fi
+if [[ $1 == --debug ]]; then
+	echo DEBUG -- PAUSE -- PRESS ENTER
+	read
 fi
 dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
 if [[ $? == 0 ]]; then
