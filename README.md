@@ -1,0 +1,40 @@
+# Arch-TUI-Installer
+
+Arch-TUI-Installer is an Installer for [Archlinux](https://archlinux.org).
+
+It's based on the [Arch Basic Install](https://gitlab.com/sontypiminternet/arch-basic)-Repositor on GitLab.
+
+# Please Note!
+
+Arch-TUI-Install is currently in BETA!
+- There is no Language-Support for other Languages than German
+- There are known Bugs!
+- It's not finished!
+## Installation with the ISO-File
+
+In the [Releases](https://github.com/Niklas20114552/arch-tui-installer/releases) Tab download the latest ISO File. Then attach the ISO to the VM, burn it to a DVD or copy it to an USB-Stick.
+Then type this into the Terminal:
+
+```bash
+chmod +x /usr/local/bin/setup
+setup
+```
+## Manual Installation
+Download the [Archlinux ISO](https://archlinux.org/download/)
+
+In Terminal type this:
+```bash
+pacman --needed --noconfirm -Sy dialog
+curl -O https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/setup
+chmod +x setup
+./setup
+```
+
+## I found an Issue!
+
+Thank you! Please report it in the [Issue](https://github.com/Niklas20114552/arch-tui-installer/issues)-Tab. But first check if it has already been reported
+### Upcoming Features:
+
+- Desktop Installer
+- Language Support for the Installer.
+- Better English for me (Thats an joke!)
