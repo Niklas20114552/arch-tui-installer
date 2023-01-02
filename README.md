@@ -16,7 +16,7 @@ In the [Releases](https://github.com/Niklas20114552/arch-tui-installer/releases)
 Then type this into the Terminal:
 
 ```bash
-chmod +x /usr/local/bin/setup
+chmod +x /usr/bin/setup
 setup
 ```
 ## Manual Installation
