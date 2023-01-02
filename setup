@@ -41,7 +41,7 @@ o3=$(dialog --no-cancel --no-items --title "Zeitzone" --menu "Bitte wählen sie 
 timezone=/usr/share/zoneinfo/$o2/$o3
 o4=$(dialog --no-cancel --title "Sprache" --menu "Bitte wählen sie ihre Sprache aus:\n\nBitte beachten sie, dass dies nicht die Sprache des Installers ändert, da dieser in der BETA ist." 20 40 5 "de_DE.UTF-8" "Deutsch" 3>&1 1>&2 2>&3 3>&-)
 case $o4 in
-de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UFT-8" ;;
+de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UTF-8" ;;
 esac
 o5=$(dialog --no-cancel --title "Hostname" --inputbox "Bitte geben sie ihren Hostname an:\n\nFalls sie einen von ihren Administrator bekommen haben, geben sie ihn hier ein:\n\nEin Hostname besteht nur aus Zahlen und Buchstaben. Keine Sonderzeichen und Leerzeichen." 13 55 3>&1 1>&2 2>&3 3>&-)
 d1=$(find /dev/sd* -not -name '*[0-9]*' | tr "\n" " ")
@@ -106,11 +106,12 @@ echo "127.0.1.1 $hostname.local $hostname" >> /target/etc/hosts
 
 arch-chroot /target bash -c "yes | pacman -S iptables-nft"
 arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget"
-arch-chroot /target bash -c "echo root:'$root_pass' | chpasswd" 
+echo "echo root'$root_pass' | chpasswd" > /target/chpasswd.sh
 arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive; grub-mkconfig -o /boot/grub/grub.cfg"
 arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
-arch-chroot /target bash -c "echo $user_name:'$user_pass' | chpasswd"
+echo "echo $user_name:'$user_pass' | chpasswd" >> /target/chpasswd.sh
+arch-chroot /target bash /chpasswd.sh
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
 if [[ $swap == yes ]]; then
 	arch-chroot /target bash -c "swapon '$o8'"
@@ -119,4 +120,6 @@ dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
 if [[ $? == 0 ]]; then
 	umount -a
 	reboot
+else
+	echo -e "Zum Neustarten folgendes ausführen:\n\numount -a\nreboot"
 fi
