@@ -112,7 +112,7 @@ arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.serv
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
 arch-chroot /target bash -c "echo $user_name:'$user_pass' | chpasswd"
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
-if [[ $swao == yes ]]; then
+if [[ $swap == yes ]]; then
 	arch-chroot /target bash -c "swapon '$o8'"
 fi
 dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
