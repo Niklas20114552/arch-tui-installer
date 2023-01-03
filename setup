@@ -90,7 +90,7 @@ dialog --title "Setup" --msgbox "Die Installation wird nun gestartet." 5 45
 mount "$o7" /target
 pacman --noconfirm -Sy archlinux-keyring
 
-pacstrap /target base linux linux-firmware git nano $cpu
+pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim
 genfstab -U /target >> /target/etc/fstab
 
 ln -sf $timezone /target/etc/localtime
@@ -104,14 +104,15 @@ echo "127.0.0.1 localhost" >> /target/etc/hosts
 echo "::1       localhost" >> /target/etc/hosts
 echo "127.0.1.1 $hostname.local $hostname" >> /target/etc/hosts
 
-arch-chroot /target bash -c "yes | pacman -S iptables-nft"
-arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget"
+#arch-chroot /target bash -c "yes | pacman -S iptables-nft"
+arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget man-db neofetch"
 echo "echo 'root:$root_pass' | chpasswd" > /target/chpasswd.sh
 arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive; grub-mkconfig -o /boot/grub/grub.cfg"
 arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
 echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
+rm -rf /target/chpasswd.sh
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
 if [[ $swap == yes ]]; then
 	arch-chroot /target bash -c "swapon '$o8'"
