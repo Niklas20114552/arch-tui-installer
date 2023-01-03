@@ -6,9 +6,7 @@ It's based on the [Arch Basic Install](https://gitlab.com/sontypiminternet/arch-
 
 # Please Note!
 
-Arch-TUI-Installer is currently in BETA!
 - There is no Language-Support for other Languages than German
-- There are known Bugs!
 - It's not finished!
 ## Installation with the ISO-File
 
