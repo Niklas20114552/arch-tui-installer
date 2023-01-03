@@ -33,7 +33,13 @@ chmod +x setup
 
 ## I found an Issue!
 
-Thank you! Please report it in the [Issue](https://github.com/Niklas20114552/arch-tui-installer/issues)-Tab. But first check if it has already been reported
+Thank you! Please enable the debug-mode:
+
+Normal installation: Run setup with `setup --debug`
+
+Manual installation: Run setup with `./setup --debug`
+
+Than look for error-messages and write it down. Please report the error in the [Issue](https://github.com/Niklas20114552/arch-tui-installer/issues)-Tab. But first check if it has already been reported
 ### Upcoming Features:
 
 - Desktop Installer
