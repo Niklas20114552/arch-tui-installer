@@ -104,7 +104,6 @@ echo "127.0.0.1 localhost" >> /target/etc/hosts
 echo "::1       localhost" >> /target/etc/hosts
 echo "127.0.1.1 $hostname.local $hostname" >> /target/etc/hosts
 
-#arch-chroot /target bash -c "yes | pacman -S iptables-nft"
 arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget man-db neofetch"
 echo "echo 'root:$root_pass' | chpasswd" > /target/chpasswd.sh
 arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive; grub-mkconfig -o /boot/grub/grub.cfg"
