@@ -126,7 +126,9 @@ echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
 if [[ -f /var/setup/installer ]]; then
 	cp /var/setup/installer /target/usr/bin/installer
 else
-	curl -o /target/usr/bin/installer https:/
+	curl -o /target/usr/bin/installer https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/installer
+fi
+chmod +x /target/usr/bin/installer
 if [ $aur == paru ] || [ $aur == yay ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
 	arch-chroot /target bash -c "chown -R $user_name:$user_name /tmp_aur"
