@@ -129,15 +129,18 @@ else
 	curl -o /target/usr/bin/installer https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/installer
 fi
 chmod +x /target/usr/bin/installer
-if [ $aur == paru ] || [ $aur == yay ]; then
+if [[ ! -f /target/usr/bin/installer ]]; then
+	dialog --title "FEHLER" --infobox "Der Desktopinstaller wurde nicht kopiert (0x01)"
+fi
+cp /var/setup/sumkpkg /target/usr/bin/sumkpkg
+chmod +x /target/usr/bin/sumkpkg
+if [ "$aur" == "paru" ] || [ "$aur" == "yay" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
-	arch-chroot /target bash -c "chown -R $user_name:$user_name /tmp_aur"
-	arch-chroot /target bash -c "(cd /tmp_aur && sudo -u $user_name makepkg --noconfirm)"
-	arch-chroot /target bash -c "pacman -U /tmp_aur/*.zst --noconfirm"
+	arch-chroot /target bash -c "(cd /tmp_aur && sumkpkg -si --noconfirm)"
 	rm -rf /target/tmp_aur
 fi
 if [[ $swap == yes ]]; then
-#	arch-chroot /target bash -c "swapon '$o8'"
+	arch-chroot /target bash -c "swapon '$o8'"
 	echo "$o8 swap swap defaults  0 0" >> /target/etc/fstab
 fi
 
