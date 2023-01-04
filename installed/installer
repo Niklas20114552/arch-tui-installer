@@ -1,0 +1,65 @@
+#!/usr/bin/bash
+if [[ ! -f /usr/bin/dialog ]]; then
+	echo Please install: dialog
+	exit
+fi
+if [[ ! -f /usr/bin/git ]]; then
+	echo Please install: git
+	exit
+fi
+if [[ ! $(whoami) == root ]]; then
+	dialog --title "Installer" --msgbox "Bitte führe dieses Skript als Root aus!" 5 45
+	exit
+fi
+dialog --title "Installer" --extra-button --extra-label Beenden --msgbox "Der Installer benötigt einen Internetzugang. \nBitte stellen sie Sicher, dass sie mit den Internet verbunden sind." 8 45
+if [[ $? == 3 ]]; then
+	exit
+fi
+o1=$(dialog --no-items --title "Desktop auswählen" --menu "Bitte wählen sie den Desktop zum installieren aus" 11 55 11 KDE-Plasma GNOME Xfce4 Cinnamon 3>&1 1>&2 2>&3 3>&-)
+if [[ $o1 == "" ]]; then
+	exit
+elif [[ $o1 == "KDE-Plasma" ]]; then
+	de=kde
+elif [[ $o1 == "GNOME" ]]; then
+	de=gnome
+elif [[ $o1 == "Xfce4" ]]; then
+	de=xfce
+elif [[ $o1 == "Cinnamon" ]]; then
+	de=cinnamon
+fi
+if [ ! -f /usr/bin/paru ] && [ ! -f /usr/bin/yay ]; then
+	dialog --title "AUR-Helper" --extra-button --no-label "Kein AUR-Helper" --yes-label "Paru" --extra-label "Yay" --yesno "Welchen AUR-Helper möchten sie installieren? \n\nEin AUR-Helper kompiliert und installiert Pakete aus den Arch User Repository." 8 55
+	if [[ $? == 0 ]]; then
+        	aur=paru
+	elif [[ $? == 3 ]]; then
+	        aur=yay
+	fi
+fi
+dialog --title "Installer" --msgbox "Die Installation wird nun gestartet." 5 45
+if [ "$aur" == "paru" ] || [ "$aur" == "yay" ]; then
+	git clone https://aur.archlinux.org/$aur.git /tmp/aur
+	chown -R nobody:nobody /tmp/aur
+	(cd /tmp/aur && sudo -u nobody makepkg --noconfirm)
+	pacman -U /tmp/aur/*.zst --noconfirm
+	rm -rf /tmp/aur
+fi
+firewall-cmd -q --add-port=1025-65535/tcp --permanent
+firewall-cmd -q --add-port=1025-65535/udp --permanent
+firewall-cmd -q --reload
+if [[ $de == kde ]]; then
+	pacman --noconfirm --needed -Sy xorg sddm plasma kde-applications firefox vlc papirus-icon-theme materia-kde archlinux-wallpaper
+	systemctl enable sddm
+elif [[ $de == gnome ]]; then
+	pacman --noconfirm --needed -Sy gdm gnome gnome-extra firefox gnome-tweaks arc-gtk-theme arc-icon-theme vlc dina-font tamsyn-font bdf-unifont ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-roboto tex-gyre-fonts ttf-ubuntu-font-family ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts cantarell-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji archlinux-wallpaper
+	systemctl enable gdm
+elif [[ $de == cinnamon ]]; then
+	pacman --needed --noconfirm -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings cinnamon firefox arc-gtk-theme arc-icon-theme vlc xed xreader metacity gnome-shell archlinux-wallpaper celluloid shotwell
+	systemctl enable lightdm
+elif [[ $de == xfce ]]; then
+	pacman --noconfirm --needed -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings xfce4 xfce4-goodies firefox arc-gtk-theme arc-icon-theme vlc archlinux-wallpaper
+	systemctl enable lightdm
+fi
+dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
+if [[ $? == 0 ]]; then
+	reboot
+fi

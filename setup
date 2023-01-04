@@ -102,7 +102,8 @@ pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim
 genfstab -U /target >> /target/etc/fstab
 
 ln -sf $timezone /target/etc/localtime
-hwclock --systohc
+arch-chroot bash -c "hwclock --systohc"
+arch-chroot bash -c "timedatectl set-ntp true"
 echo "$locale" > /target/etc/locale.gen
 arch-chroot /target bash -c "locale-gen"
 echo "LANG=$local" > /target/etc/locale.conf
@@ -122,16 +123,22 @@ echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
 rm -rf /target/chpasswd.sh
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
+if [[ -f /var/setup/installer ]]; then
+	cp /var/setup/installer /target/usr/bin/installer
+else
+	curl -o /target/usr/bin/installer https:/
 if [ $aur == paru ] || [ $aur == yay ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
 	arch-chroot /target bash -c "chown -R $user_name:$user_name /tmp_aur"
 	arch-chroot /target bash -c "(cd /tmp_aur && sudo -u $user_name makepkg --noconfirm)"
 	arch-chroot /target bash -c "pacman -U /tmp_aur/*.zst --noconfirm"
+	rm -rf /target/tmp_aur
 fi
 if [[ $swap == yes ]]; then
 #	arch-chroot /target bash -c "swapon '$o8'"
 	echo "$o8 swap swap defaults  0 0" >> /target/etc/fstab
 fi
+
 if [[ $1 == --debug ]]; then
 	echo DEBUG -- PAUSE -- PRESS ENTER
 	read
