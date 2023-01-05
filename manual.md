@@ -1,5 +1,7 @@
 # Manual Installing
 
+### Plase note: This type of Installation is not supported.
+
 Download the [Archlinux ISO](https://archlinux.org/download/)
 
 In Terminal type this:
