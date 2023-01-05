@@ -109,6 +109,7 @@ echo "$locale" > /target/etc/locale.gen
 arch-chroot /target bash -c "locale-gen"
 echo "LANG=$local" > /target/etc/locale.conf
 echo "KEYMAP=$keymap" > /target/etc/vconsole.conf
+echo "$layout" > /target/var/setup/layout.conf
 echo $o5 > /target/etc/hostname
 echo "127.0.0.1 localhost" >> /target/etc/hosts
 echo "::1       localhost" >> /target/etc/hosts
@@ -119,8 +120,6 @@ echo "echo 'root:$root_pass' | chpasswd" > /target/chpasswd.sh
 sed -i "s/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /target/etc/default/grub
 arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive; grub-mkconfig -o /boot/grub/grub.cfg"
 arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
-arch-chroot /target bash -c "systemd-firstboot"
-arch-chroot /target bash -c "localectl --no-convert set-x11-keymap $layout"
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
 echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
