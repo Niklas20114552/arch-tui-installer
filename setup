@@ -91,9 +91,9 @@ else
 fi
 dialog --title "AUR-Helper" --extra-button --no-label "Kein AUR-Helper" --yes-label "Paru" --extra-label "Yay" --yesno "Welchen AUR-Helper möchten sie installieren? \n\nEin AUR-Helper kompiliert und installiert Pakete aus den Arch User Repository." 8 55
 if [[ $? == 0 ]]; then
-	aur=paru
+	aur=paru-bin
 elif [[ $? == 3 ]]; then
-	aur=yay
+	aur=yay-bin
 fi 
 dialog --title "Setup" --msgbox "Die Installation wird nun gestartet." 5 45
 mount "$o7" /target
@@ -145,7 +145,7 @@ if [[ ! -f /target/var/setup/sumkpkg ]]; then
 	dialog --title "KRITISCH" --infobox "Der Paketersteller wurde nicht kopiert (0x02). \nDas Setup kann nicht fortfahren!" 6 50
 	exit
 fi
-if [ "$aur" == "paru" ] || [ "$aur" == "yay" ]; then
+if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
 	arch-chroot /target bash -c "(cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)"
 	rm -rf /target/tmp_aur

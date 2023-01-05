@@ -30,13 +30,13 @@ fi
 if [ ! -f /usr/bin/paru ] && [ ! -f /usr/bin/yay ]; then
 	dialog --title "AUR-Helper" --extra-button --no-label "Kein AUR-Helper" --yes-label "Paru" --extra-label "Yay" --yesno "Welchen AUR-Helper möchten sie installieren? \n\nEin AUR-Helper kompiliert und installiert Pakete aus den Arch User Repository." 8 55
 	if [[ $? == 0 ]]; then
-        	aur=paru
+        	aur=paru-bin
 	elif [[ $? == 3 ]]; then
-	        aur=yay
+	        aur=yay-bin
 	fi
 fi
 dialog --title "Installer" --msgbox "Die Installation wird nun gestartet." 5 45
-if [ "$aur" == "paru" ] || [ "$aur" == "yay" ]; then
+if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	git clone https://aur.archlinux.org/$aur.git /tmp/aur
 	chown -R nobody:nobody /tmp/aur
 	(cd /tmp/aur && /var/setup/sumkpkg -si --noconfirm)
