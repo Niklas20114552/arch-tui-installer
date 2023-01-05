@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 function rootpw() {
-	p1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte geben sie das Root Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 9 45 3>&1 1>&2 2>&3 3>&-)
-	c1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte wiederholen sie das Root Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 9 45 3>&1 1>&2 2>&3 3>&-)
+	p1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte geben sie das Root Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
+	c1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte wiederholen sie das Root Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p1" == "$c1" ]]; then
 		root_pass="$p1"
 	else
@@ -10,8 +10,8 @@ function rootpw() {
 	fi
 }
 function userpw() {
-	p2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte geben sie das Nutzer Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 9 45 3>&1 1>&2 2>&3 3>&-)
-	c2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte wiederholen sie das Nutzer Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
+	p2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte geben sie das Nutzer Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
+	c2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte wiederholen sie das Nutzer Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 11 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p2" == "$c2" ]]; then
 		user_pass="$p2"
 	else
@@ -34,8 +34,8 @@ if [[ $? == 3 ]]; then
 fi
 o1=$(dialog --no-cancel --title "Tastatur-Layout" --menu "Bitte wählen sie ihr Tastatur-Layout:" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" 3>&1 1>&2 2>&3 3>&-)
 case $o1 in
-de_DE) keymap=de-latin1 ;;
-de_CH) keymap=de_CH-latin1 ;;
+de_DE) keymap=de-latin1 && layout=de ;;
+de_CH) keymap=de_CH-latin1 && layout=ch ;;
 esac
 loadkeys $keymap
 o2=$(dialog --no-cancel --title "Zeitzone" --menu "Bitte wählen sie ihre Zeitzone:" 23 35 5 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
@@ -56,11 +56,12 @@ drives=$(echo $drives)
 o6=$(dialog --no-cancel --no-items --title "Laufwerke" --menu "Bitte wählen sie ihre Festplatte" 20 20 5 $drives 3>&1 1>&2 2>&3 3>&-)
 boot_drive=$o6
 dialog --title "Partitionierten von $boot_drive" --msgbox "Nun müssen sie ihre Platte partitionieren:\n\nSie benötigen eine Bootbare Partition des Types Linux.\nSie können auch eine Swap-Partition erstellen." 8 60
+umount "$boot_drive"*
 cfdisk $boot_drive
 partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
 partition=$(echo $partition)
 o7=$(dialog --no-cancel --no-items --title "Partitionen" --menu "Bitte wählen sie ROOT-Partition\n(Die Bootbare)" 20 20 5 $partition 3>&1 1>&2 2>&3 3>&-)
-dialog --title "Formatieren?" --default-button no --yesno "Diese Partition wird nun FORMATIERT! \nACHTUNG: Dies ZERSTÖRT ALLE DATEN! \n\nFortfahren?" 8 45
+dialog --title "Formatieren von $o7" --default-button no --yesno "Diese Partition wird nun FORMATIERT! \nACHTUNG: Dies ZERSTÖRT ALLE DATEN! \n\nFortfahren?" 8 45
 if [[ $? == 1 ]]; then
 	dialog --title "Fehler" --msgbox "Das Setup kann nicht fortfahren, ohne die Partition zu formatieren." 6 45
 	exit
@@ -118,6 +119,8 @@ echo "echo 'root:$root_pass' | chpasswd" > /target/chpasswd.sh
 sed -i "s/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /target/etc/default/grub
 arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive; grub-mkconfig -o /boot/grub/grub.cfg"
 arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
+arch-chroot /target bash -c "systemd-firstboot"
+arch-chroot /target bash -c "localectl --no-convert set-x11-keymap $layout"
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
 echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
@@ -129,14 +132,23 @@ else
 	curl -o /target/usr/bin/installer https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/installer
 fi
 chmod +x /target/usr/bin/installer
+mkdir -p /target/var/setup
 if [[ ! -f /target/usr/bin/installer ]]; then
 	dialog --title "FEHLER" --infobox "Der Desktopinstaller wurde nicht kopiert (0x01)"
 fi
-cp /var/setup/sumkpkg /target/usr/bin/sumkpkg
-chmod +x /target/usr/bin/sumkpkg
+if [[ -f /var/setup/sumkpkg ]]; then
+	cp /var/setup/sumkpkg /target/var/setup/sumkpkg
+else
+	curl -o /target/var/setup/sumkpkg https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/sumkpkg
+fi
+chmod +x /target/var/setup/sumkpkg
+if [[ ! -f /target/var/setup/sumkpkg ]]; then
+	dialog --title "KRITISCH" --infobox "Der Paketersteller wurde nicht kopiert (0x02). \nDas Setup kann nicht fortfahren!" 6 50
+	exit
+fi
 if [ "$aur" == "paru" ] || [ "$aur" == "yay" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
-	arch-chroot /target bash -c "(cd /tmp_aur && sumkpkg -si --noconfirm)"
+	arch-chroot /target bash -c "(cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)"
 	rm -rf /target/tmp_aur
 fi
 if [[ $swap == yes ]]; then

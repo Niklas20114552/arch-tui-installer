@@ -39,7 +39,7 @@ dialog --title "Installer" --msgbox "Die Installation wird nun gestartet." 5 45
 if [ "$aur" == "paru" ] || [ "$aur" == "yay" ]; then
 	git clone https://aur.archlinux.org/$aur.git /tmp/aur
 	chown -R nobody:nobody /tmp/aur
-	(cd /tmp/aur && sumkpkg -si --noconfirm)
+	(cd /tmp/aur && /var/setup/sumkpkg -si --noconfirm)
 	rm -rf /tmp/aur
 fi
 firewall-cmd -q --add-port=1025-65535/tcp --permanent
@@ -51,10 +51,10 @@ if [[ $de == kde ]]; then
 elif [[ $de == gnome ]]; then
 	if ! pacman -Qs bdf-unifont > /dev/null ; then
 		git clone https://aur.archlinux.org/bdf-unifont.git /tmp/bdf-unifont
-		(cd /tmp/bdf-unifont && sumkpkg -si --noconfirm --skippgpcheck)
+		(cd /tmp/bdf-unifont && /var/setup/sumkpkg -si --noconfirm --skippgpcheck)
 		rm -rf /tmp/bdf-unifont
 	fi
-	pacman --noconfirm --needed -Sy gdm gnome gnome-extra firefox gnome-tweaks arc-gtk-theme arc-icon-theme vlc dina-font tamsyn-font ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-roboto tex-gyre-fonts ttf-ubuntu-font-family ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts cantarell-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji archlinux-wallpaper
+	pacman --ignore epiphany --noconfirm --needed -Sy gdm gnome gnome-extra firefox gnome-tweaks arc-gtk-theme arc-icon-theme vlc dina-font tamsyn-font ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-roboto tex-gyre-fonts ttf-ubuntu-font-family ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts cantarell-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji archlinux-wallpaper
 	systemctl enable gdm
 elif [[ $de == cinnamon ]]; then
 	pacman --needed --noconfirm -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings cinnamon firefox arc-gtk-theme arc-icon-theme vlc xed xreader metacity gnome-shell archlinux-wallpaper celluloid shotwell
@@ -63,7 +63,7 @@ elif [[ $de == xfce ]]; then
 	pacman --noconfirm --needed -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings xfce4 xfce4-goodies firefox arc-gtk-theme arc-icon-theme vlc archlinux-wallpaper
 	systemctl enable lightdm
 fi
-dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
+dialog --title "Setup" --yesno "Jetzt neustarten? \nBitte beachten sie, dass der Desktop \ndie Englische Tastatur verwendet! \nSie müssen dies Manuell ändern." 0 0
 if [[ $? == 0 ]]; then
 	reboot
 fi
