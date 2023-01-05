@@ -103,6 +103,7 @@ pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim
 genfstab -U /target >> /target/etc/fstab
 
 ln -sf $timezone /target/etc/localtime
+mkdir -p /target/var/setup
 arch-chroot bash -c "hwclock --systohc"
 arch-chroot bash -c "timedatectl set-ntp true"
 echo "$locale" > /target/etc/locale.gen
@@ -131,7 +132,6 @@ else
 	curl -o /target/usr/bin/installer https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/installer
 fi
 chmod +x /target/usr/bin/installer
-mkdir -p /target/var/setup
 if [[ ! -f /target/usr/bin/installer ]]; then
 	dialog --title "FEHLER" --infobox "Der Desktopinstaller wurde nicht kopiert (0x01)"
 fi
