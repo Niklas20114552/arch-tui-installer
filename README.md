@@ -18,6 +18,7 @@ setup
 ```
 ## Manual Installation
 ### Recommended when key errors occur. (such as Invalid or broken Package (PGP-Signature)
+### Plase note: This type of Installation is not supported.
 Download the [Archlinux ISO](https://archlinux.org/download/)
 
 In Terminal type this:
