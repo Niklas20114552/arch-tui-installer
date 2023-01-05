@@ -46,7 +46,7 @@ firewall-cmd -q --add-port=1025-65535/tcp --permanent
 firewall-cmd -q --add-port=1025-65535/udp --permanent
 firewall-cmd -q --reload
 if [[ $de == kde ]]; then
-	pacman --noconfirm --needed -Sy xorg sddm plasma kde-applications firefox vlc papirus-icon-theme materia-kde archlinux-wallpaper
+	pacman --ignore falkon konqueror --noconfirm --needed -Sy xorg sddm plasma kde-applications firefox vlc papirus-icon-theme materia-kde archlinux-wallpaper
 	systemctl enable sddm
 elif [[ $de == gnome ]]; then
 	if ! pacman -Qs bdf-unifont > /dev/null ; then
