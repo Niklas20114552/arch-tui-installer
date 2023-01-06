@@ -10,6 +10,7 @@ It's based on the [Arch Basic Install](https://gitlab.com/sontypiminternet/arch-
 - It's not finished!
 ### UEFI with QEMU:
 
+When you are having troubles booting the ISO:
 Please use the `UEFI x86_64: /usr/share/OVMF/OVMF_CODE_4M.fd` Firmware, not `UEFI`
 ## Installation with the ISO-File
 
