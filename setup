@@ -62,11 +62,15 @@ else
 fi
 umount "$boot_drive"*
 cfdisk $boot_drive
-partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
 partition=$(echo $partition)
 if [[ "$partition" == "" ]]; then
-	dialog --title "KRITISCH" --msgbox "Partitionen von $boot_drive konnten nicht gefunden werden. \n\nDas Setup kann nicht fortfahren." 0 0
-	exit
+	partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+	partition=$(echo $partition)
+	if [[ "$partition" == "" ]]; then
+		dialog --title "KRITISCH" --msgbox "Partitionen von $boot_drive konnten nicht gefunden werden. \n\nDas Setup kann nicht fortfahren." 0 0
+		exit
+	fi
 fi
 if [[ -d /sys/firmware/efi ]]; then
 	e1=$(dialog --no-cancel --no-items --title "Partitionen" --menu "Bitte wählen sie EFI-Partition \n(Typ: EFI-System)" 20 34 5 $partition 3>&1 1>&2 2>&3 3>&-)
