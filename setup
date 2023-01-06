@@ -150,7 +150,7 @@ if [[ -d /sys/firmware/efi ]]; then
 else
 	arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive"
 fi
-arch-chroot /target bash -c "grub-mkconfig /boot/grub/grub.cfg"
+arch-chroot /target bash -c "grub-mkconfig -o /boot/grub/grub.cfg"
 arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
 echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
