@@ -1,64 +1,68 @@
 #!/usr/bin/bash
 function rootpw() {
-	p1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte geben sie das Root Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
-	c1=$(dialog --no-cancel --title "Root-Passwort" --passwordbox "Bitte wiederholen sie das Root Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
+	p1=$(dialog --no-cancel --title "$tit1" --passwordbox "$lan1" 10 45 3>&1 1>&2 2>&3 3>&-)
+	c1=$(dialog --no-cancel --title "$tit1" --passwordbox "$lan2" 10 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p1" == "$c1" ]]; then
 		root_pass="$p1"
 	else
-		dialog --title "Root-Passwort" --msgbox "Die Passwörter stimmen nicht überein" 5 40
+		dialog --title "$tit1" --msgbox "$lan5" 5 40
 		rootpw
 	fi
 }
 function userpw() {
-	p2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte geben sie das Nutzer Passwort ein: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 10 45 3>&1 1>&2 2>&3 3>&-)
-	c2=$(dialog --no-cancel --title "Nutzer-Passwort" --passwordbox "Bitte wiederholen sie das Nutzer Passwort: \n\nSie können das Passwort bei der Eingabe nicht sehen!" 11 45 3>&1 1>&2 2>&3 3>&-)
+	p2=$(dialog --no-cancel --title "$tit2" --passwordbox "$lan3" 10 45 3>&1 1>&2 2>&3 3>&-)
+	c2=$(dialog --no-cancel --title "$tit2" --passwordbox "$lan4" 11 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p2" == "$c2" ]]; then
 		user_pass="$p2"
 	else
-		dialog --title "Root-Passwort" --msgbox "Die Passwörter stimmen nicht überein" 5 40
+		dialog --title "$tit2" --msgbox "$lan5" 5 40
 		userpw
 	fi
 }
-if [[ $1 == --debug ]]; then
-	dialog --title "Setup" --infobox "Debug-Modus aktiviert." 3 26
-	sleep 3
-fi
 if [[ ! -f /usr/bin/dialog ]]; then
 	echo Please install: dialog
 	exit
 fi
 mkdir -p /target
-dialog --title "Setup" --extra-button --extra-label Beenden --msgbox "Das Setup benötigt einen Internetzugang. \nBitte stellen sie Sicher, dass sie mit den Internet verbunden sind." 7 45
+o4=$(dialog --no-cancel --title "Language" --menu "Please choose your language." 20 40 5 "de_DE.UTF-8" "Deutsch" 3>&1 1>&2 2>&3 3>&-)
+case $o4 in
+de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UTF-8" && slan=de ;;
+esac
+if [[ ! -f /var/setup/lang.conf ]]; then
+	curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/testing/lang.conf
+fi
+source /var/setup/lang.conf $slan
+if [[ $1 == --debug ]]; then
+	dialog --title "$mtit" --infobox "$err1" 3 26
+	sleep 3
+fi
+dialog --title "$mtit" --extra-button --extra-label "$but1" --msgbox "$lan6" 7 45
 if [[ $? == 3 ]]; then
 	exit
 fi
-o1=$(dialog --no-cancel --title "Tastatur-Layout" --menu "Bitte wählen sie ihr Tastatur-Layout:" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" 3>&1 1>&2 2>&3 3>&-)
+o1=$(dialog --no-cancel --title "$tit3" --menu "$lan7" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" 3>&1 1>&2 2>&3 3>&-)
 case $o1 in
 de_DE) keymap=de-latin1 && layout=de ;;
 de_CH) keymap=de_CH-latin1 && layout=ch ;;
 esac
 loadkeys $keymap
-o2=$(dialog --no-cancel --title "Zeitzone" --menu "Bitte wählen sie ihre Zeitzone:" 23 35 5 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
+o2=$(dialog --no-cancel --title "$tit4" --menu "$lan8" 23 35 5 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
 cd /usr/share/zoneinfo/$o2
 tzone=$(echo *)
-o3=$(dialog --no-cancel --no-items --title "Zeitzone" --menu "Bitte wählen sie ihre Zeitzone:" 23 35 5 $tzone 3>&1 1>&2 2>&3 3>&-)
+o3=$(dialog --no-cancel --no-items --title "$tit4" --menu "$lan8" 23 35 5 $tzone 3>&1 1>&2 2>&3 3>&-)
 timezone=/usr/share/zoneinfo/$o2/$o3
-o4=$(dialog --no-cancel --title "Sprache" --menu "Bitte wählen sie ihre Sprache aus:\n\nBitte beachten sie, dass dies nicht die Sprache des Installers ändert, da dieser in der BETA ist." 20 40 5 "de_DE.UTF-8" "Deutsch" 3>&1 1>&2 2>&3 3>&-)
-case $o4 in
-de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UTF-8" ;;
-esac
-o5=$(dialog --no-cancel --title "Hostname" --inputbox "Bitte geben sie ihren Hostname an:\n\nFalls sie einen von ihren Administrator bekommen haben, geben sie ihn hier ein:\n\nEin Hostname besteht nur aus Zahlen und Buchstaben. Keine Sonderzeichen und Leerzeichen." 13 55 3>&1 1>&2 2>&3 3>&-)
-d1=$(find /dev/sd* -not -name '*[0-9]*' | tr "\n" " ")
-d2=$(find /dev/vd* -not -name '*[0-9]*' | tr "\n" " ")
-d3=$(find /dev/hd* -not -name '*[0-9]*' | tr "\n" " ")
+o5=$(dialog --no-cancel --title "$tit5" --inputbox "$lan9" 13 55 3>&1 1>&2 2>&3 3>&-)
+d1=$(find /dev/sd* -not -name '*[0-9]' | tr "\n" " ")
+d2=$(find /dev/vd* -not -name '*[0-9]' | tr "\n" " ")
+d3=$(find /dev/hd* -not -name '*[0-9]' | tr "\n" " ")
 drives="$d1 $d2 $d3"
 drives=$(echo $drives)
-o6=$(dialog --no-cancel --no-items --title "Laufwerke" --menu "Bitte wählen sie ihre Festplatte" 20 20 5 $drives 3>&1 1>&2 2>&3 3>&-)
+o6=$(dialog --no-cancel --no-items --title "$tit6" --menu "$lan10" 20 20 5 $drives 3>&1 1>&2 2>&3 3>&-)
 boot_drive=$o6
 if [[ -d /sys/firmware/efi ]]; then
-	dialog --title "Partitionieren von $boot_drive" --msgbox "Nun müssen sie ihre Platte partitionieren:\n\nSie benötigen eine Partition des Types EFI-System (empf. Größe: 300MB)\nSie benötigen eine Partition des Types Linux filesystem.\nSie können auch eine Swap-Partition erstellen." 10 73
+	dialog --title "$tit7a $boot_drive" --msgbox "$lan11" 10 73
 else
-	dialog --title "Partitionieren von $boot_drive" --msgbox "Nun müssen sie ihre Platte partitionieren:\n\nSie benötigen eine Bootbare Partition des Types Linux.\nSie können auch eine Swap-Partition erstellen." 8 60
+	dialog --title "$tit7a $boot_drive" --msgbox "$lan12" 8 60
 fi
 umount "$boot_drive"*
 cfdisk $boot_drive
@@ -68,53 +72,53 @@ if [[ "$partition" == "" ]]; then
 	partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
 	partition=$(echo $partition)
 	if [[ "$partition" == "" ]]; then
-		dialog --title "KRITISCH" --msgbox "Partitionen von $boot_drive konnten nicht gefunden werden. \n\nDas Setup kann nicht fortfahren." 0 0
+		dialog --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
 		exit
 	fi
 fi
 if [[ -d /sys/firmware/efi ]]; then
-	e1=$(dialog --no-cancel --no-items --title "Partitionen" --menu "Bitte wählen sie EFI-Partition \n(Typ: EFI-System)" 20 34 5 $partition 3>&1 1>&2 2>&3 3>&-)
-	dialog --title "Formatieren von $e1" --yesno "Wollen sie die Partition formartieren? \nDies ist erforderlich wenn sie die Partition gerade erst erstellt haben. \n\nDurch das formatieren können sie möglicherweise andere Betriebssyteme nicht mehr verwenden." 0 0
+	e1=$(dialog --no-cancel --no-items --title "$tit7b" --menu "$lan13" 20 34 5 $partition 3>&1 1>&2 2>&3 3>&-)
+	dialog --title "$tit8 $e1" --yesno "$lan14" 0 0
 	if [[ $? == 0 ]]; then
 		yes | mkfs.vfat $e1
 	fi
 fi
-o7=$(dialog --no-cancel --no-items --title "Partitionen" --menu "Bitte wählen sie ROOT-Partition \n(Typ: Linux)" 20 20 5 $partition 3>&1 1>&2 2>&3 3>&-)
-dialog --title "Formatieren von $o7" --default-button no --yesno "Diese Partition wird nun FORMATIERT! \nACHTUNG: Dies ZERSTÖRT ALLE DATEN! \n\nFortfahren?" 8 45
+o7=$(dialog --no-cancel --no-items --title "$tit7b" --menu "$lan17" 20 20 5 $partition 3>&1 1>&2 2>&3 3>&-)
+dialog --title "$tit8 $o7" --default-button no --yesno "$lan18" 8 45
 if [[ $? == 1 ]]; then
-	dialog --title "Fehler" --msgbox "Das Setup kann nicht fortfahren, ohne die Partition zu formatieren." 6 45
+	dialog --title "$err3" --msgbox "$err5" 6 45
 	exit
 fi
 yes | mkfs.ext4 $o7
 
-dialog --title "Swap Partition?" --yesno "Haben sie eine Swap-Partition erstellt?" 5 45
+dialog --title "$tit9" --yesno "$lan15" 5 45
 if [[ $? == 0 ]]; then
 	swap=yes
-	o8=$(dialog --no-cancel --no-items --title "Partitionen" --menu "Bitte wählen sie SWAP-Partition" 20 20 5 $partition 3>&1 1>&2 2>&3 3>&-)
+	o8=$(dialog --no-cancel --no-items --title "$tit7b" --menu "$lan16" 20 20 5 $partition 3>&1 1>&2 2>&3 3>&-)
 	yes | mkswap $o8
 fi
 rootpw
-user_name=$(dialog --no-cancel --title "Nutzername" --inputbox "Bitte geben sie den KURZNAMEN ein: \nDieser enthält nur kleinbuchstaben und Nummern" 9 45 3>&1 1>&2 2>&3 3>&-)
+user_name=$(dialog --no-cancel --title "$tit10" --inputbox "$lan19" 9 45 3>&1 1>&2 2>&3 3>&-)
 userpw
-dialog --title "Grafikkarte" --no-label AMD --yes-label Nvidia --yesno "Besitzen sie eine AMD oder Nvidia Grafikkarte?" 6 45
+dialog --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "Besitzen sie eine AMD oder Nvidia Grafikkarte?" 6 45
 if [[ $? == 1 ]]; then
 	gpu=xf86-video-amdgpu
 else
 	gpu="nvidia nvidia-utils nvidia-settings"
 fi
-dialog --title "Prozessor" --no-label AMD --yes-label Intel --yesno "Besitzen sie einen AMD oder Intel Prozessor?" 6 45
+dialog --title "$tit12" --no-label AMD --yes-label Intel --yesno "Besitzen sie einen AMD oder Intel Prozessor?" 6 45
 if [[ $? == 1 ]]; then
 	cpu=amd-ucode
 else
 	cpu=intel-ucode
 fi
-dialog --title "AUR-Helper" --extra-button --no-label "Kein AUR-Helper" --yes-label "Paru" --extra-label "Yay" --yesno "Welchen AUR-Helper möchten sie installieren? \n\nEin AUR-Helper kompiliert und installiert Pakete aus den Arch User Repository." 8 55
+dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan12" 8 55
 if [[ $? == 0 ]]; then
 	aur=paru-bin
 elif [[ $? == 3 ]]; then
 	aur=yay-bin
 fi 
-dialog --title "Setup" --msgbox "Die Installation wird nun gestartet." 5 45
+dialog --title "$mtit" --msgbox "$lan23" 5 45
 mount "$o7" /target
 mkdir -p /target/boot/efi
 mount "$e1" /target/boot/efi
@@ -164,7 +168,7 @@ else
 fi
 chmod +x /target/usr/bin/installer
 if [[ ! -f /target/usr/bin/installer ]]; then
-	dialog --title "FEHLER" --infobox "Der Desktopinstaller wurde nicht kopiert (0x01)"
+	dialog --title "$err3" --infobox "$err6"
 fi
 if [[ -f /var/setup/sumkpkg ]]; then
 	cp /var/setup/sumkpkg /target/var/setup/sumkpkg
@@ -173,7 +177,7 @@ else
 fi
 chmod +x /target/var/setup/sumkpkg
 if [[ ! -f /target/var/setup/sumkpkg ]]; then
-	dialog --title "KRITISCH" --infobox "Der Paketersteller wurde nicht kopiert (0x02). \nDas Setup kann nicht fortfahren!" 6 50
+	dialog --title "$err2" --infobox "$err7" 6 50
 	exit
 fi
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
@@ -190,10 +194,10 @@ if [[ $1 == --debug ]]; then
 	echo DEBUG -- PAUSE -- PRESS ENTER
 	read
 fi
-dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
+dialog --title "$mtit" --yesno "$lan24" 0 0
 if [[ $? == 0 ]]; then
 	umount -a
 	reboot
 else
-	echo -e "Zum Neustarten folgendes ausführen:\n\numount -a\nreboot"
+	echo -e "$lan25"
 fi
