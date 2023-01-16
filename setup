@@ -24,9 +24,10 @@ if [[ ! -f /usr/bin/dialog ]]; then
 	exit
 fi
 mkdir -p /target
-o4=$(dialog --no-cancel --title "Language" --menu "Please choose your language." 20 40 5 "de_DE.UTF-8" "Deutsch" 3>&1 1>&2 2>&3 3>&-)
+o4=$(dialog --no-cancel --title "Language" --menu "Please choose your language." 20 40 5 "de_DE.UTF-8" "Deutsch" "en_US.UTF-8" "English (US)" 3>&1 1>&2 2>&3 3>&-)
 case $o4 in
 de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UTF-8" && slan=de ;;
+en_US.UTF-8) local="en_US.UTF-8" && locale="en_US.UTF-8 UTF-8" && slan=en ;;
 esac
 if [[ ! -f /var/setup/lang.conf ]]; then
 	curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/testing/lang.conf
@@ -43,7 +44,8 @@ fi
 o1=$(dialog --no-cancel --title "$tit3" --menu "$lan7" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" 3>&1 1>&2 2>&3 3>&-)
 case $o1 in
 de_DE) keymap=de-latin1 && layout=de ;;
-de_CH) keymap=de_CH-latin1 && layout=ch ;;
+de_CH) keymap=de_CH-latin1 && layout=en ;;
+de_CH) keymap=en && layout=ch ;;
 esac
 loadkeys $keymap
 o2=$(dialog --no-cancel --title "$tit4" --menu "$lan8" 23 35 5 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)

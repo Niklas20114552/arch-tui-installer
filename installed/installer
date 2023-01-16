@@ -1,4 +1,11 @@
 #!/usr/bin/bash
+function iaur() {
+	if ! pacman -Qs $1 > /dev/null ; then
+		git clone https://aur.archlinux.org/$1.git /tmp/$1
+		(cd /tmp/$1 && /var/setup/sumkpkg -si --noconfirm --skippgpcheck)
+		rm -rf /tmp/$1
+	fi
+}
 if [[ ! -f /usr/bin/dialog ]]; then
 	echo Please install: dialog
 	exit
@@ -37,10 +44,7 @@ if [ ! -f /usr/bin/paru ] && [ ! -f /usr/bin/yay ]; then
 fi
 dialog --title "Installer" --msgbox "Die Installation wird nun gestartet." 5 45
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
-	git clone https://aur.archlinux.org/$aur.git /tmp/aur
-	chown -R nobody:nobody /tmp/aur
-	(cd /tmp/aur && /var/setup/sumkpkg -si --noconfirm)
-	rm -rf /tmp/aur
+	iaur $aur
 fi
 firewall-cmd -q --add-port=1025-65535/tcp --permanent
 firewall-cmd -q --add-port=1025-65535/udp --permanent
@@ -50,15 +54,14 @@ if [[ $de == kde ]]; then
 	pacman --ignore falkon konqueror --noconfirm --needed -Sy xorg sddm plasma kde-applications firefox vlc papirus-icon-theme materia-kde archlinux-wallpaper
 	systemctl enable sddm
 elif [[ $de == gnome ]]; then
-	if ! pacman -Qs bdf-unifont > /dev/null ; then
-		git clone https://aur.archlinux.org/bdf-unifont.git /tmp/bdf-unifont
-		(cd /tmp/bdf-unifont && /var/setup/sumkpkg -si --noconfirm --skippgpcheck)
-		rm -rf /tmp/bdf-unifont
-	fi
+	iaur bdf-unifont
 	pacman --ignore epiphany --noconfirm --needed -Sy gdm gnome gnome-extra firefox gnome-tweaks arc-gtk-theme arc-icon-theme vlc dina-font tamsyn-font ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-roboto tex-gyre-fonts ttf-ubuntu-font-family ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts cantarell-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji archlinux-wallpaper
 	systemctl enable gdm
 elif [[ $de == cinnamon ]]; then
-	pacman --needed --noconfirm -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings cinnamon firefox arc-gtk-theme arc-icon-theme vlc xed xreader metacity gnome-shell archlinux-wallpaper celluloid shotwell gnome-terminal cinnamon-translations
+	iaur lightdm-settings
+	pacman --needed --noconfirm -Sy xorg lightdm lightdm-slick-greeter gnome-software cinnamon firefox arc-gtk-theme arc-icon-theme vlc xed xreader metacity archlinux-wallpaper celluloid shotwell gnome-terminal cinnamon-translations nemo-fileroller
+	sed -i '/^greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+	sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
 	systemctl enable lightdm
 elif [[ $de == xfce ]]; then
 	pacman --noconfirm --needed -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings xfce4 xfce4-goodies firefox arc-gtk-theme arc-icon-theme vlc archlinux-wallpaper
