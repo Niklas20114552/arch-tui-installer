@@ -6,6 +6,20 @@ function iaur() {
 		rm -rf /tmp/$1
 	fi
 }
+function lang() {
+	lan="$(cat /etc/locale.gen")"
+	case "$lan" in
+	"de_DE.UTF-8 UTF-8") slan=de && ask=Deutsch ;;
+	"en_US.UTF-8 UTF-8") slan=de && ask=English ;;
+	esac
+	dialog --title "Language" --yesno "$chlan1 \n\n--> $ask \n\n$chlan2" 0 0
+	if [[ $? == 1 ]]; then
+		lang
+	else
+		source /var/setup/lang.conf $slan
+	fi
+}
+
 if [[ ! -f /usr/bin/dialog ]]; then
 	echo Please install: dialog
 	exit
@@ -15,14 +29,14 @@ if [[ ! -f /usr/bin/git ]]; then
 	exit
 fi
 if [[ ! $(whoami) == root ]]; then
-	dialog --title "Installer" --msgbox "Bitte führe dieses Skript als Root aus!" 5 45
+	dialog --title "Installer" --msgbox "$err1" 5 45
 	exit
 fi
-dialog --title "Installer" --extra-button --extra-label Beenden --msgbox "Der Installer benötigt einen Internetzugang. \nBitte stellen sie Sicher, dass sie mit den Internet verbunden sind." 8 45
+dialog --title "Installer" --extra-button --extra-label $but1 --msgbox "$lan1" 8 45
 if [[ $? == 3 ]]; then
 	exit
 fi
-o1=$(dialog --no-items --title "Desktop auswählen" --menu "Bitte wählen sie den Desktop zum installieren aus" 11 55 11 KDE-Plasma GNOME Xfce4 Cinnamon 3>&1 1>&2 2>&3 3>&-)
+o1=$(dialog --no-items --title "$tit1" --menu "$lan2" 11 55 11 KDE-Plasma GNOME Xfce4 Cinnamon 3>&1 1>&2 2>&3 3>&-)
 if [[ $o1 == "" ]]; then
 	exit
 elif [[ $o1 == "KDE-Plasma" ]]; then
@@ -35,14 +49,14 @@ elif [[ $o1 == "Cinnamon" ]]; then
 	de=cinnamon
 fi
 if [ ! -f /usr/bin/paru ] && [ ! -f /usr/bin/yay ]; then
-	dialog --title "AUR-Helper" --extra-button --no-label "Kein AUR-Helper" --yes-label "Paru" --extra-label "Yay" --yesno "Welchen AUR-Helper möchten sie installieren? \n\nEin AUR-Helper kompiliert und installiert Pakete aus den Arch User Repository." 8 55
+	dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan3" 8 55
 	if [[ $? == 0 ]]; then
         	aur=paru-bin
 	elif [[ $? == 3 ]]; then
 	        aur=yay-bin
 	fi
 fi
-dialog --title "Installer" --msgbox "Die Installation wird nun gestartet." 5 45
+dialog --title "Installer" --msgbox "$lan4" 5 45
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	iaur $aur
 fi

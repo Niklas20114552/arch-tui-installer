@@ -30,7 +30,7 @@ de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UTF-8" && slan=de ;;
 en_US.UTF-8) local="en_US.UTF-8" && locale="en_US.UTF-8 UTF-8" && slan=en ;;
 esac
 if [[ ! -f /var/setup/lang.conf ]]; then
-	curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/testing/lang.conf
+	curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/lang.conf
 fi
 source /var/setup/lang.conf $slan
 if [[ $1 == --debug ]]; then
@@ -114,7 +114,7 @@ if [[ $? == 1 ]]; then
 else
 	cpu=intel-ucode
 fi
-dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan12" 8 55
+dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan22" 8 55
 if [[ $? == 0 ]]; then
 	aur=paru-bin
 elif [[ $? == 3 ]]; then
@@ -163,6 +163,11 @@ echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
 rm -rf /target/chpasswd.sh
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
+if [[ -f /var/setup/installed.conf ]]; then
+	cp /var/setup/installed.conf /target/var/setup/lang.conf
+else
+	curl -o /var/setup/installed.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/lang.conf
+fi
 if [[ -f /var/setup/installer ]]; then
 	cp /var/setup/installer /target/usr/bin/installer
 else
