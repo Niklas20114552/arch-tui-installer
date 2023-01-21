@@ -7,16 +7,15 @@ function iaur() {
 	fi
 }
 function lang() {
-	lan="$(cat /etc/locale.gen")"
-	case "$lan" in
-	"de_DE.UTF-8 UTF-8") slan=de && ask=Deutsch ;;
-	"en_US.UTF-8 UTF-8") slan=de && ask=English ;;
-	esac
+	source /var/setup/lang.conf $slan
 	dialog --title "Language" --yesno "$chlan1 \n\n--> $ask \n\n$chlan2" 0 0
 	if [[ $? == 1 ]]; then
+		o2=$(dialog --no-cancel --title "Language" --menu "Please choose your language." 20 40 5 "de_DE.UTF-8" "Deutsch" "en_US.UTF-8" "English (US)" 3>&1 1>&2 2>&3 3>&-)
+		case $o2 in
+		de_DE.UTF-8) slan=de && ask=Deutsch ;;
+		en_US.UTF-8) slan=en && ask=English ;;
+		esac
 		lang
-	else
-		source /var/setup/lang.conf $slan
 	fi
 }
 
@@ -28,6 +27,12 @@ if [[ ! -f /usr/bin/git ]]; then
 	echo Please install: git
 	exit
 fi
+lan="$(cat /etc/locale.gen)"
+case "$lan" in
+	"de_DE.UTF-8 UTF-8") slan=de && ask=Deutsch ;;
+	"en_US.UTF-8 UTF-8") slan=en && ask=English ;;
+esac
+lang
 if [[ ! $(whoami) == root ]]; then
 	dialog --title "Installer" --msgbox "$err1" 5 45
 	exit

@@ -41,11 +41,11 @@ dialog --title "$mtit" --extra-button --extra-label "$but1" --msgbox "$lan6" 7 4
 if [[ $? == 3 ]]; then
 	exit
 fi
-o1=$(dialog --no-cancel --title "$tit3" --menu "$lan7" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" 3>&1 1>&2 2>&3 3>&-)
+o1=$(dialog --no-cancel --title "$tit3" --menu "$lan7" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" en_US "English" 3>&1 1>&2 2>&3 3>&-)
 case $o1 in
 de_DE) keymap=de-latin1 && layout=de ;;
-de_CH) keymap=de_CH-latin1 && layout=en ;;
-de_CH) keymap=en && layout=ch ;;
+de_CH) keymap=de_CH-latin1 && layout=ch ;;
+en_US) keymap=en && layout=en ;;
 esac
 loadkeys $keymap
 o2=$(dialog --no-cancel --title "$tit4" --menu "$lan8" 23 35 5 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
