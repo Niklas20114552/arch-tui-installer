@@ -4,10 +4,14 @@ Arch-TUI-Installer is an Installer for [Archlinux](https://archlinux.org).
 
 It's based on the [Arch Basic Install](https://gitlab.com/sontypiminternet/arch-basic)-Repository on GitLab.
 
-# Please Note!
+# I need you help!
 
-- There is no Language-Support for other Languages than German
-- It's not finished!
+You can download the ```lang.conf``` file and make a translation.
+
+When you're done, please submit it via the Issue-Tab, with the Title:
+
+Translation: [YOUR-LANGUAGE]
+
 ### UEFI with QEMU:
 
 When you are having troubles booting the ISO:
@@ -41,7 +45,3 @@ Normal installation: Run setup with `setup --debug`
 Manual installation: Run setup with `./setup --debug`
 
 Than look for error-messages and write it down. Please report the error in the [Issue](https://github.com/Niklas20114552/arch-tui-installer/issues)-Tab. But first check if it has already been reported
-### Upcoming Features:
-
-- Language Support for the Installer.
-- Better English for me (Thats an joke!)
