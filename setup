@@ -101,6 +101,7 @@ if [[ $? == 0 ]]; then
 fi
 rootpw
 user_name=$(dialog --no-cancel --title "$tit10" --inputbox "$lan19" 9 45 3>&1 1>&2 2>&3 3>&-)
+full_name=$(dialog --no-cancel --title "$tit10" --inputbox "$lan26" 9 45 3>&1 1>&2 2>&3 3>&-)
 userpw
 dialog --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 6 45
 if [[ $? == 1 ]]; then
@@ -126,7 +127,12 @@ mkdir -p /target/boot/efi
 mount "$e1" /target/boot/efi
 pacman --noconfirm -Sy archlinux-keyring
 
-pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim
+pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim vim
+
+if [[ $swap == yes ]]; then
+	swapon "$o8"
+fi
+
 genfstab -U /target >> /target/etc/fstab
 
 ln -sf $timezone /target/etc/localtime
@@ -163,6 +169,7 @@ echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
 rm -rf /target/chpasswd.sh
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
+arch-chroot /target bash -c "chfn --full-name '$full_name' $user_name"
 if [[ -f /var/setup/installed.conf ]]; then
 	cp /var/setup/installed.conf /target/var/setup/lang.conf
 else
@@ -191,10 +198,6 @@ if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
 	arch-chroot /target bash -c "(cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)"
 	rm -rf /target/tmp_aur
-fi
-if [[ $swap == yes ]]; then
-	arch-chroot /target bash -c "swapon '$o8'"
-	echo "$o8 swap swap defaults  0 0" >> /target/etc/fstab
 fi
 
 if [[ $1 == --debug ]]; then
