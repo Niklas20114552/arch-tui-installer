@@ -32,6 +32,9 @@ case "$lan" in
 	"de_DE.UTF-8 UTF-8") slan=de && ask=Deutsch ;;
 	"en_US.UTF-8 UTF-8") slan=en && ask=English ;;
 esac
+if [[ ! -f /var/setup/lang.conf ]]; then
+        curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/lang.conf
+fi
 lang
 if [[ ! $(whoami) == root ]]; then
 	dialog --title "Installer" --msgbox "$err1" 5 45
@@ -41,7 +44,7 @@ dialog --title "Installer" --extra-button --extra-label $but1 --msgbox "$lan1" 8
 if [[ $? == 3 ]]; then
 	exit
 fi
-o1=$(dialog --no-items --title "$tit1" --menu "$lan2" 11 55 11 KDE-Plasma GNOME Xfce4 Cinnamon 3>&1 1>&2 2>&3 3>&-)
+o1=$(dialog --no-items --title "$tit1" --menu "$lan2" 12 55 12 KDE-Plasma GNOME Xfce4 Cinnamon Deepin 3>&1 1>&2 2>&3 3>&-)
 if [[ $o1 == "" ]]; then
 	exit
 elif [[ $o1 == "KDE-Plasma" ]]; then
@@ -52,6 +55,8 @@ elif [[ $o1 == "Xfce4" ]]; then
 	de=xfce
 elif [[ $o1 == "Cinnamon" ]]; then
 	de=cinnamon
+elif [[ $o1 == "Deepin" ]]; then
+	de=deepin
 fi
 if [ ! -f /usr/bin/paru ] && [ ! -f /usr/bin/yay ]; then
 	dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan3" 8 55
@@ -84,6 +89,11 @@ elif [[ $de == cinnamon ]]; then
 	systemctl enable lightdm
 elif [[ $de == xfce ]]; then
 	pacman --noconfirm --needed -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings xfce4 xfce4-goodies firefox arc-gtk-theme arc-icon-theme vlc archlinux-wallpaper
+	systemctl enable lightdm
+elif [[ $de == deepin ]]; then
+	pacman --needed --noconfirm -S xorg lightdm deepin deepin-extra firefox archlinux-wallpaper
+	sed -i '/^greeter-session=/c\greeter-session=lightdm-deepin-greeter' /etc/lightdm/lightdm.conf
+	sed -i '/^#greeter-session=/c\greeter-session=lightdm-deepin-greeter' /etc/lightdm/lightdm.conf
 	systemctl enable lightdm
 fi
 dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0

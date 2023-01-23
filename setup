@@ -59,7 +59,8 @@ d2=$(find /dev/vd* -not -name '*[0-9]' | tr "\n" " ")
 d3=$(find /dev/hd* -not -name '*[0-9]' | tr "\n" " ")
 drives="$d1 $d2 $d3"
 drives=$(echo $drives)
-o6=$(dialog --no-cancel --no-items --title "$tit6" --menu "$lan10" 20 20 5 $drives 3>&1 1>&2 2>&3 3>&-)
+drivec=${drives// /,}
+o6=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit6" --menu "$lan10 \n\n$(lsblk --output NAME,MODEL,SIZE /dev/{vd*,sd*,hd*}[!0-9])" 0 0 0 $drives 3>&1 1>&2 2>&3 3>&-)
 boot_drive=$o6
 if [[ -d /sys/firmware/efi ]]; then
 	dialog --title "$tit7a $boot_drive" --msgbox "$lan11" 10 73
@@ -78,14 +79,15 @@ if [[ "$partition" == "" ]]; then
 		exit
 	fi
 fi
+lsblk $o6 --output NAME,PARTTYPENAME,SIZE
 if [[ -d /sys/firmware/efi ]]; then
-	e1=$(dialog --no-cancel --no-items --title "$tit7b" --menu "$lan13" 20 34 5 $partition 3>&1 1>&2 2>&3 3>&-)
+	e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 	dialog --title "$tit8 $e1" --yesno "$lan14" 0 0
 	if [[ $? == 0 ]]; then
 		yes | mkfs.vfat $e1
 	fi
 fi
-o7=$(dialog --no-cancel --no-items --title "$tit7b" --menu "$lan17" 20 20 5 $partition 3>&1 1>&2 2>&3 3>&-)
+o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 dialog --title "$tit8 $o7" --default-button no --yesno "$lan18" 8 45
 if [[ $? == 1 ]]; then
 	dialog --title "$err3" --msgbox "$err5" 6 45
@@ -96,11 +98,12 @@ yes | mkfs.ext4 $o7
 dialog --title "$tit9" --yesno "$lan15" 5 45
 if [[ $? == 0 ]]; then
 	swap=yes
-	o8=$(dialog --no-cancel --no-items --title "$tit7b" --menu "$lan16" 20 20 5 $partition 3>&1 1>&2 2>&3 3>&-)
+	o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 	yes | mkswap $o8
 fi
 rootpw
 user_name=$(dialog --no-cancel --title "$tit10" --inputbox "$lan19" 9 45 3>&1 1>&2 2>&3 3>&-)
+full_name=$(dialog --no-cancel --title "$tit10" --inputbox "$lan26" 9 45 3>&1 1>&2 2>&3 3>&-)
 userpw
 dialog --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 6 45
 if [[ $? == 1 ]]; then
@@ -126,7 +129,12 @@ mkdir -p /target/boot/efi
 mount "$e1" /target/boot/efi
 pacman --noconfirm -Sy archlinux-keyring
 
-pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim
+pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim vim
+
+if [[ $swap == yes ]]; then
+	swapon "$o8"
+fi
+
 genfstab -U /target >> /target/etc/fstab
 
 ln -sf $timezone /target/etc/localtime
@@ -163,6 +171,7 @@ echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
 rm -rf /target/chpasswd.sh
 echo "%wheel ALL=(ALL:ALL) ALL" > /target/etc/sudoers.d/wheel
+arch-chroot /target bash -c "chfn --full-name '$full_name' $user_name"
 if [[ -f /var/setup/installed.conf ]]; then
 	cp /var/setup/installed.conf /target/var/setup/lang.conf
 else
@@ -191,10 +200,6 @@ if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
 	arch-chroot /target bash -c "(cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)"
 	rm -rf /target/tmp_aur
-fi
-if [[ $swap == yes ]]; then
-	arch-chroot /target bash -c "swapon '$o8'"
-	echo "$o8 swap swap defaults  0 0" >> /target/etc/fstab
 fi
 
 if [[ $1 == --debug ]]; then
