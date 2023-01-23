@@ -32,6 +32,9 @@ case "$lan" in
 	"de_DE.UTF-8 UTF-8") slan=de && ask=Deutsch ;;
 	"en_US.UTF-8 UTF-8") slan=en && ask=English ;;
 esac
+if [[ ! -f /var/setup/lang.conf ]]; then
+        curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/lang.conf
+fi
 lang
 if [[ ! $(whoami) == root ]]; then
 	dialog --title "Installer" --msgbox "$err1" 5 45
