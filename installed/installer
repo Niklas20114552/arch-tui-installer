@@ -44,7 +44,7 @@ dialog --title "Installer" --extra-button --extra-label $but1 --msgbox "$lan1" 8
 if [[ $? == 3 ]]; then
 	exit
 fi
-o1=$(dialog --no-items --title "$tit1" --menu "$lan2" 12 55 12 KDE-Plasma GNOME Xfce4 Cinnamon Deepin 3>&1 1>&2 2>&3 3>&-)
+o1=$(dialog --no-items --title "$tit1" --menu "$lan2" 14 55 14 KDE-Plasma GNOME Xfce4 Cinnamon Deepin MATE LXQt 3>&1 1>&2 2>&3 3>&-)
 if [[ $o1 == "" ]]; then
 	exit
 elif [[ $o1 == "KDE-Plasma" ]]; then
@@ -57,6 +57,10 @@ elif [[ $o1 == "Cinnamon" ]]; then
 	de=cinnamon
 elif [[ $o1 == "Deepin" ]]; then
 	de=deepin
+elif [[ $o1 == "MATE" ]]; then
+	de=mate
+elif [[ $o1 == "LXQt" ]]; then
+	de=lxqt
 fi
 if [ ! -f /usr/bin/paru ] && [ ! -f /usr/bin/yay ]; then
 	dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan3" 8 55
@@ -79,21 +83,30 @@ if [[ $de == kde ]]; then
 	systemctl enable sddm
 elif [[ $de == gnome ]]; then
 	iaur bdf-unifont
-	pacman --ignore epiphany --noconfirm --needed -Sy gdm gnome gnome-extra firefox gnome-tweaks arc-gtk-theme arc-icon-theme vlc dina-font tamsyn-font ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-roboto tex-gyre-fonts ttf-ubuntu-font-family ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts cantarell-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji archlinux-wallpaper
+	pacman --ignore epiphany --noconfirm --needed -Syu gdm gnome gnome-extra firefox gnome-tweaks arc-gtk-theme arc-icon-theme vlc dina-font tamsyn-font ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-roboto tex-gyre-fonts ttf-ubuntu-font-family ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts cantarell-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji archlinux-wallpaper
 	systemctl enable gdm
 elif [[ $de == cinnamon ]]; then
 	iaur lightdm-settings
-	pacman --needed --noconfirm -Sy xorg lightdm lightdm-slick-greeter gnome-software cinnamon firefox arc-gtk-theme arc-icon-theme vlc xed xreader metacity archlinux-wallpaper celluloid shotwell gnome-terminal cinnamon-translations nemo-fileroller
+	pacman --needed --noconfirm -Syu xorg lightdm lightdm-slick-greeter gnome-software cinnamon firefox arc-gtk-theme arc-icon-theme vlc xed xreader metacity archlinux-wallpaper celluloid shotwell gnome-terminal cinnamon-translations nemo-fileroller
 	sed -i '/^greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
 	sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
 	systemctl enable lightdm
 elif [[ $de == xfce ]]; then
-	pacman --noconfirm --needed -Sy xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings xfce4 xfce4-goodies firefox arc-gtk-theme arc-icon-theme vlc archlinux-wallpaper
+	pacman --noconfirm --needed -Syu xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings xfce4 xfce4-goodies firefox arc-gtk-theme arc-icon-theme vlc archlinux-wallpaper
 	systemctl enable lightdm
 elif [[ $de == deepin ]]; then
-	pacman --needed --noconfirm -S xorg lightdm deepin deepin-extra firefox archlinux-wallpaper
+	pacman --needed --noconfirm -Syu xorg lightdm deepin deepin-extra firefox archlinux-wallpaper
 	sed -i '/^greeter-session=/c\greeter-session=lightdm-deepin-greeter' /etc/lightdm/lightdm.conf
 	sed -i '/^#greeter-session=/c\greeter-session=lightdm-deepin-greeter' /etc/lightdm/lightdm.conf
+	systemctl enable lightdm
+elif [[ $de == mate ]]; then
+	pacman --noconfirm --needed -Syu xorg lightdm mate mate-extra firefox archlinux-wallpaper lightdm-gtk-greeter lightdm-gtk-greeter-settings
+	systemctl enable lightdm
+elif [[ $de == lxqt ]]; then
+	iaur lightdm-settings
+	pacman --noconfirm --needed -Syu xorg lxqt xdg-utils ttf-freefont libpulse libstatgrab libsysstat lm_sensors network-manager-applet oxygen-icons pavucontrol-qt lightdm lightdm-slick-greeter
+        sed -i '/^greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
 	systemctl enable lightdm
 fi
 dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
