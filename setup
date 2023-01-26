@@ -1,21 +1,21 @@
 #!/usr/bin/bash
 function rootpw() {
-	p1=$(dialog --no-cancel --title "$tit1" --passwordbox "$lan1" 10 45 3>&1 1>&2 2>&3 3>&-)
-	c1=$(dialog --no-cancel --title "$tit1" --passwordbox "$lan2" 10 45 3>&1 1>&2 2>&3 3>&-)
+	p1=$(dialog --cr-wrap --no-cancel --title "$tit1" --passwordbox "$lan1" 10 45 3>&1 1>&2 2>&3 3>&-)
+	c1=$(dialog --cr-wrap --no-cancel --title "$tit1" --passwordbox "$lan2" 10 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p1" == "$c1" ]]; then
 		root_pass="$p1"
 	else
-		dialog --title "$tit1" --msgbox "$lan5" 5 40
+		dialog --cr-wrap --title "$tit1" --msgbox "$lan5" 0 0
 		rootpw
 	fi
 }
 function userpw() {
-	p2=$(dialog --no-cancel --title "$tit2" --passwordbox "$lan3" 10 45 3>&1 1>&2 2>&3 3>&-)
-	c2=$(dialog --no-cancel --title "$tit2" --passwordbox "$lan4" 11 45 3>&1 1>&2 2>&3 3>&-)
+	p2=$(dialog --cr-wrap --no-cancel --title "$tit2" --passwordbox "$lan3" 10 45 3>&1 1>&2 2>&3 3>&-)
+	c2=$(dialog --cr-wrap --no-cancel --title "$tit2" --passwordbox "$lan4" 11 45 3>&1 1>&2 2>&3 3>&-)
 	if [[ "$p2" == "$c2" ]]; then
 		user_pass="$p2"
 	else
-		dialog --title "$tit2" --msgbox "$lan5" 5 40
+		dialog --cr-wrap --title "$tit2" --msgbox "$lan5" 0 0
 		userpw
 	fi
 }
@@ -24,36 +24,44 @@ if [[ ! -f /usr/bin/dialog ]]; then
 	exit
 fi
 mkdir -p /target
-o4=$(dialog --no-cancel --title "Language" --menu "Please choose your language." 20 40 5 "de_DE.UTF-8" "Deutsch" "en_US.UTF-8" "English (US)" 3>&1 1>&2 2>&3 3>&-)
+o4=$(dialog --cr-wrap --no-cancel --title "Language" --menu "Please choose your language." 0 0 0 "de_DE.UTF-8" "Deutsch" "en_US.UTF-8" "English (US)" "fr_FR.UTF-8" "Français" "nl_NL.UTF-8" "Nederlands" "it_IT.UTF-8" "Italiano" "es_ES.UTF-8" "Español" 3>&1 1>&2 2>&3 3>&-)
 case $o4 in
 de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UTF-8" && slan=de ;;
 en_US.UTF-8) local="en_US.UTF-8" && locale="en_US.UTF-8 UTF-8" && slan=en ;;
+fr_FR.UTF-8) local="fr_FR.UTF-8" && locale="fr_FR.UTF-8 UTF-8" && slan=fr ;;
+nl_NL.UTF-8) local="nl_NL.UTF-8" && locale="nl_NL.UTF-8 UTF-8" && slan=nl ;;
+it_IT.UTF-8) local="it_IT.UTF-8" && locale="it_IT.UTF-8 UTF-8" && slan=it ;;
+es_ES.UTF-8) local="es_ES.UTF-8" && locale="es_ES.UTF-8 UTF-8" && slan=es ;;
 esac
 if [[ ! -f /var/setup/lang.conf ]]; then
 	curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/lang.conf
 fi
 source /var/setup/lang.conf $slan
 if [[ $1 == --debug ]]; then
-	dialog --title "$mtit" --infobox "$err1" 3 26
+	dialog --cr-wrap --title "$mtit" --infobox "$err1" 0 0
 	sleep 3
 fi
-dialog --title "$mtit" --extra-button --extra-label "$but1" --msgbox "$lan6" 7 45
+dialog --cr-wrap --title "$mtit" --extra-button --extra-label "$but1" --msgbox "$lan6" 0 0
 if [[ $? == 3 ]]; then
 	exit
 fi
-o1=$(dialog --no-cancel --title "$tit3" --menu "$lan7" 12 35 5 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" en_US "English" 3>&1 1>&2 2>&3 3>&-)
+o1=$(dialog --cr-wrap --no-cancel --title "$tit3" --menu "$lan7" 0 0 0 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" en_US "English" fr_FR "Français" nl_NL "Nederlands" it_IT "Italiano" es_ES "Español" 3>&1 1>&2 2>&3 3>&-)
 case $o1 in
 de_DE) keymap=de-latin1 && layout=de ;;
 de_CH) keymap=de_CH-latin1 && layout=ch ;;
 en_US) keymap=en && layout=en ;;
+ft_FR) keymap=fr && layout=fr ;;
+nl_NL) keymap=nl && layout=nl ;;
+it_IT) keymap=it && layout=it ;;
+es_ES) keymap=es && layout=es ;;
 esac
 loadkeys $keymap
-o2=$(dialog --no-cancel --title "$tit4" --menu "$lan8" 23 35 5 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
+o2=$(dialog --cr-wrap --no-cancel --title "$tit4" --menu "$lan8" 0 0 0 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
 cd /usr/share/zoneinfo/$o2
 tzone=$(echo *)
-o3=$(dialog --no-cancel --no-items --title "$tit4" --menu "$lan8" 23 35 5 $tzone 3>&1 1>&2 2>&3 3>&-)
+o3=$(dialog --cr-wrap --no-cancel --no-items --title "$tit4" --menu "$lan8" 0 0 0 $tzone 3>&1 1>&2 2>&3 3>&-)
 timezone=/usr/share/zoneinfo/$o2/$o3
-o5=$(dialog --no-cancel --title "$tit5" --inputbox "$lan9" 13 55 3>&1 1>&2 2>&3 3>&-)
+o5=$(dialog --cr-wrap --no-cancel --title "$tit5" --inputbox "$lan9" 0 0 3>&1 1>&2 2>&3 3>&-)
 d1=$(find /dev/sd* -not -name '*[0-9]' | tr "\n" " ")
 d2=$(find /dev/vd* -not -name '*[0-9]' | tr "\n" " ")
 d3=$(find /dev/hd* -not -name '*[0-9]' | tr "\n" " ")
@@ -63,9 +71,9 @@ drivec=${drives// /,}
 o6=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit6" --menu "$lan10 \n\n$(lsblk --output NAME,MODEL,SIZE /dev/{vd*,sd*,hd*}[!0-9])" 0 0 0 $drives 3>&1 1>&2 2>&3 3>&-)
 boot_drive=$o6
 if [[ -d /sys/firmware/efi ]]; then
-	dialog --title "$tit7a $boot_drive" --msgbox "$lan11" 10 73
+	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
 else
-	dialog --title "$tit7a $boot_drive" --msgbox "$lan12" 8 60
+	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
 fi
 umount "$boot_drive"*
 cfdisk $boot_drive
@@ -75,55 +83,55 @@ if [[ "$partition" == "" ]]; then
 	partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
 	partition=$(echo $partition)
 	if [[ "$partition" == "" ]]; then
-		dialog --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+		dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
 		exit
 	fi
 fi
 lsblk $o6
 if [[ -d /sys/firmware/efi ]]; then
 	e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-	dialog --title "$tit8 $e1" --yesno "$lan14" 0 0
+	dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
 	if [[ $? == 0 ]]; then
 		yes | mkfs.vfat $e1
 	fi
 fi
 o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-dialog --title "$tit8 $o7" --default-button no --yesno "$lan18" 8 45
+dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
 if [[ $? == 1 ]]; then
-	dialog --title "$err3" --msgbox "$err5" 6 45
+	dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
 	exit
 fi
 yes | mkfs.ext4 $o7
 
-dialog --title "$tit9" --yesno "$lan15" 5 45
+dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
 if [[ $? == 0 ]]; then
 	swap=yes
 	o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 	yes | mkswap $o8
 fi
 rootpw
-user_name=$(dialog --no-cancel --title "$tit10" --inputbox "$lan19" 9 45 3>&1 1>&2 2>&3 3>&-)
-full_name=$(dialog --no-cancel --title "$tit10" --inputbox "$lan26" 9 45 3>&1 1>&2 2>&3 3>&-)
+user_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan19" 0 0 3>&1 1>&2 2>&3 3>&-)
+full_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan26" 0 0 3>&1 1>&2 2>&3 3>&-)
 userpw
-dialog --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 6 45
+dialog --cr-wrap --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 0 0
 if [[ $? == 1 ]]; then
 	gpu=xf86-video-amdgpu
 else
 	gpu="nvidia nvidia-utils nvidia-settings"
 fi
-dialog --title "$tit12" --no-label AMD --yes-label Intel --yesno "$lan21" 6 45
+dialog --cr-wrap --title "$tit12" --no-label AMD --yes-label Intel --yesno "$lan21" 0 0
 if [[ $? == 1 ]]; then
 	cpu=amd-ucode
 else
 	cpu=intel-ucode
 fi
-dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan22" 8 55
+dialog --cr-wrap --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan22" 0 0
 if [[ $? == 0 ]]; then
 	aur=paru-bin
 elif [[ $? == 3 ]]; then
 	aur=yay-bin
 fi 
-dialog --title "$mtit" --msgbox "$lan23" 5 45
+dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
 mkdir -p /target/boot/efi
 mount "$e1" /target/boot/efi
@@ -184,7 +192,7 @@ else
 fi
 chmod +x /target/usr/bin/installer
 if [[ ! -f /target/usr/bin/installer ]]; then
-	dialog --title "$err3" --infobox "$err6"
+	dialog --title "$err3" --msgbox "$err6" 0 0
 fi
 if [[ -f /var/setup/sumkpkg ]]; then
 	cp /var/setup/sumkpkg /target/var/setup/sumkpkg
@@ -193,7 +201,7 @@ else
 fi
 chmod +x /target/var/setup/sumkpkg
 if [[ ! -f /target/var/setup/sumkpkg ]]; then
-	dialog --title "$err2" --infobox "$err7" 6 50
+	dialog --title "$err2" --infobox "$err7" 0 0
 	exit
 fi
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
