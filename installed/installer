@@ -1,4 +1,6 @@
 #!/usr/bin/bash
+# Hello! If you are reading that and you're thinking that some important packages are missing in the scripts, than please considere add an Issue at the github page to tell us about it:
+# https://niklas20114552.github.io
 function iaur() {
 	if ! pacman -Qs $1 > /dev/null ; then
 		git clone https://aur.archlinux.org/$1.git /tmp/$1
@@ -44,7 +46,7 @@ dialog --title "Installer" --extra-button --extra-label $but1 --msgbox "$lan1" 8
 if [[ $? == 3 ]]; then
 	exit
 fi
-o1=$(dialog --no-items --title "$tit1" --menu "$lan2" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt 3>&1 1>&2 2>&3 3>&-)
+o1=$(dialog --no-items --title "$tit1" --menu "$lan2" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
 if [[ $o1 == "" ]]; then
 	exit
 elif [[ $o1 == "KDE-Plasma" ]]; then
@@ -63,6 +65,8 @@ elif [[ $o1 == "MATE" ]]; then
 	de=mate
 elif [[ $o1 == "LXQt" ]]; then
 	de=lxqt
+elif [[ $o1 == "LXDE" ]]; then
+	de=lxde
 fi
 if [ ! -f /usr/bin/paru ] && [ ! -f /usr/bin/yay ]; then
 	dialog --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan3" 8 55
@@ -117,6 +121,14 @@ elif [[ $de == tde ]]; then
 	Server = https://mirror.ppa.trinitydesktop.org/trinity/archlinux/x86_64" >> /etc/pacman.conf
 	pacman --needed --noconfirm -Syyu tde-meta firefox vlc archlinux-wallpaper
 	systemctl enable tdm
+elif [[ $de == lxde ]]; then
+	iaur lightdm-settings
+	iaur python2-bin
+	iaur gamin
+	pacman --needed --noconfirm -Syu lxde lightdm lightdm-slick-greeter vlc firefox celluloid xed arc-gtk-theme arc-icon-theme
+        sed -i '/^greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        systemctl enable lightdm
 fi
 dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
 if [[ $? == 0 ]]; then
