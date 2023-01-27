@@ -164,7 +164,7 @@ if [[ -d /sys/firmware/efi ]]; then
 else
 	grub="grub"
 fi
-arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu $grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget man-db neofetch cargo"
+arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu $grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget man-db neofetch cargo nvme-cli"
 echo "echo 'root:$root_pass' | chpasswd" > /target/chpasswd.sh
 sed -i "s/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /target/etc/default/grub
 if [[ -d /sys/firmware/efi ]]; then
