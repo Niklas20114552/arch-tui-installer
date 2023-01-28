@@ -65,10 +65,15 @@ o5=$(dialog --cr-wrap --no-cancel --title "$tit5" --inputbox "$lan9" 0 0 3>&1 1>
 d1=$(find /dev/sd* -not -name '*[0-9]' | tr "\n" " ")
 d2=$(find /dev/vd* -not -name '*[0-9]' | tr "\n" " ")
 d3=$(find /dev/hd* -not -name '*[0-9]' | tr "\n" " ")
-drives="$d1 $d2 $d3"
+d4=$(find /dev/nvme0n* -not -name '*p[0-9]' | tr "\n" " ")
+drives="$d1 $d2 $d3 $d4"
 drives=$(echo $drives)
-drivec=${drives// /,}
-o6=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit6" --menu "$lan10 \n\n$(lsblk --output NAME,MODEL,SIZE /dev/{vd*,sd*,hd*}[!0-9])" 0 0 0 $drives 3>&1 1>&2 2>&3 3>&-)
+o6=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit6" --menu "$lan10 \n\n$(lsblk --output NAME,MODEL,PARTTYPENAME,SIZE /dev/{vd*[!0-9],sd*[!0-9],hd*[!0-9],nvme0n[0-9]})" 0 0 0 $drives 3>&1 1>&2 2>&3 3>&-)
+if [[ $o6 == /dev/nvme* ]]; then
+	nvme=true
+else
+	nvme=false
+fi
 boot_drive=$o6
 if [[ -d /sys/firmware/efi ]]; then
 	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
@@ -77,14 +82,27 @@ else
 fi
 umount "$boot_drive"*
 cfdisk $boot_drive
-partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
-partition=$(echo $partition)
-if [[ "$partition" == "" ]]; then
-	partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+if [[ $nvme == true ]]; then
+	partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
 	partition=$(echo $partition)
 	if [[ "$partition" == "" ]]; then
-		dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-		exit
+		partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
+		partition=$(echo $partition)
+		if [[ "$partition" == "" ]]; then
+			dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+			exit
+		fi
+	fi
+else
+	partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
+	partition=$(echo $partition)
+	if [[ "$partition" == "" ]]; then
+	        partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+	        partition=$(echo $partition)
+	        if [[ "$partition" == "" ]]; then
+	                dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+	                exit
+	        fi
 	fi
 fi
 lsblk $o6
