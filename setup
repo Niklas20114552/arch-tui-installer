@@ -143,11 +143,18 @@ if [[ $? == 1 ]]; then
 else
 	cpu=intel-ucode
 fi
-dialog --cr-wrap --title "AUR-Helper" --extra-button --no-label "$but2" --yes-label "Paru" --extra-label "Yay" --yesno "$lan22" 0 0
+dialog --cr-wrap --title "AUR-Helper" --extra-button --extra-label "Yay" --help-button --help-label "$but2" --yes-label "Paru" --no-label "Chaotic-AUR" --yesno "$lan22" 0 0
 if [[ $? == 0 ]]; then
 	aur=paru-bin
+	aurh=paru
 elif [[ $? == 3 ]]; then
 	aur=yay-bin
+	aurh=yay
+elif [[ $? == 2 ]]; then
+	aurh=none
+elif [[ $? == 1 ]]; then
+	aur=chaotic
+	aurh=chaotic
 fi 
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
@@ -171,7 +178,9 @@ echo "$locale" > /target/etc/locale.gen
 arch-chroot /target bash -c "locale-gen"
 echo "LANG=$local" > /target/etc/locale.conf
 echo "KEYMAP=$keymap" > /target/etc/vconsole.conf
-echo "$layout" > /target/var/setup/layout.conf
+echo '#!/usr/bin/bash' > /target/var/setup/setup.conf
+echo "layout=$layout" >> /target/var/setup/setup.conf
+echo "aurh=$aurh" >> /target/var/setup/setup.conf
 echo $o5 > /target/etc/hostname
 echo "127.0.0.1 localhost" >> /target/etc/hosts
 echo "::1       localhost" >> /target/etc/hosts
@@ -227,7 +236,17 @@ if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	arch-chroot /target bash -c "(cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)"
 	rm -rf /target/tmp_aur
 fi
+if [[ "$aur" == "chaotic" ]]; then
+	arch-chroot /target bash -c "pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com"
+	arch-chroot /target bash -c "pacman-key --lsign-key FBA220DFC880C036"
+	arch-chroot /target bash -c "pacman --needed --noconfirm -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'"
+	echo "[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
 
+[multilib]
+Include = /etc/pacman.d/mirrorlist" >> /target/etc/pacman.conf
+	arch-chroot /target bash -c "pacman --noconfirm --needed -Syy"
+fi
 if [[ $1 == --debug ]]; then
 	echo DEBUG -- PAUSE -- PRESS ENTER
 	read
