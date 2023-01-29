@@ -145,10 +145,12 @@ elif [[ $de == lxqt ]]; then
         sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
 	systemctl enable lightdm
 elif [[ $de == tde ]]; then
-	pacman-key --recv-keys 8685AD8B
-	pacman-key --lsign-key 8685AD8B
-	echo "[trinity]
+	if ! grep -q "trinity" "/etc/pacman.conf"; then
+		pacman-key --recv-keys 8685AD8B
+		pacman-key --lsign-key 8685AD8B
+		echo "[trinity]
 Server = https://mirror.ppa.trinitydesktop.org/trinity/archlinux/x86_64" >> /etc/pacman.conf
+	fi
 	pacman --needed --noconfirm -Syyu tde-meta firefox vlc archlinux-wallpaper
 	systemctl enable tdm
 elif [[ $de == lxde ]]; then
