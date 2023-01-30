@@ -158,8 +158,10 @@ elif [[ $? == 1 ]]; then
 fi 
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
-mkdir -p /target/boot/efi
-mount "$e1" /target/boot/efi
+if [[ -d /sys/firmware/efi ]]; then
+	mkdir -p /target/boot/efi
+	mount "$e1" /target/boot/efi
+fi
 pacman --noconfirm -Sy archlinux-keyring
 
 pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim vim
