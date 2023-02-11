@@ -158,25 +158,27 @@ elif [[ $o9 == "Chaotic-AUR" ]]; then
 	aur=chaotic
 	aurh=chaotic
 fi
-so1=$(dialog --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
-if [[ $so1 == "KDE-Plasma" ]]; then
-        de=kde
-elif [[ $so1 == "GNOME" ]]; then
-        de=gnome
-elif [[ $so1 == "Xfce4" ]]; then
-        de=xfce
-elif [[ $so1 == "Cinnamon" ]]; then
-        de=cinnamon
-elif [[ $so1 == "Deepin" ]]; then
-        de=deepin
-elif [[ $so1 == "Trinity" ]]; then
-        de=tde
-elif [[ $so1 == "MATE" ]]; then
-        de=mate
-elif [[ $so1 == "LXQt" ]]; then
-        de=lxqt
-elif [[ $so1 == "LXDE" ]]; then
-        de=lxde
+if [[ $stype == Full ]]; then
+	so1=$(dialog --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
+	if [[ $so1 == "KDE-Plasma" ]]; then
+        	de=kde
+	elif [[ $so1 == "GNOME" ]]; then
+	        de=gnome
+	elif [[ $so1 == "Xfce4" ]]; then
+	        de=xfce
+	elif [[ $so1 == "Cinnamon" ]]; then
+	        de=cinnamon
+	elif [[ $so1 == "Deepin" ]]; then
+	        de=deepin
+	elif [[ $so1 == "Trinity" ]]; then
+	        de=tde
+	elif [[ $so1 == "MATE" ]]; then
+	        de=mate
+	elif [[ $so1 == "LXQt" ]]; then
+	        de=lxqt
+	elif [[ $so1 == "LXDE" ]]; then
+	        de=lxde
+	fi
 fi
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
@@ -255,6 +257,9 @@ if [[ ! -f /target/var/setup/sumkpkg ]]; then
 	dialog --cr-wrap --title "$err2" --msgbox "$err7" 0 0
 	exit
 fi
+if [[ ! -f /var/setup/autlogin.tmp ]]; then
+	curl -o /var/setup/autologin.tmp https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/autologin.tmp
+fi
 if [[ -f /var/setup/desktopinstall ]]; then
 	cp /var/setup/desktopinstall /target/usr/bin/desktopinstall
 else
@@ -281,6 +286,8 @@ Include = /etc/pacman.d/chaotic-mirrorlist
 Include = /etc/pacman.d/mirrorlist" >> /target/etc/pacman.conf
 	arch-chroot /target bash -c "pacman --noconfirm --needed -Syy"
 fi
+cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
+cp -r /var/lib/iwd /target/var/lib/iwd 
 if [[ $1 == --debug ]]; then
 	echo DEBUG -- PAUSE -- PRESS ENTER
 	read
@@ -291,17 +298,13 @@ if [[ $stype == Full ]]; then
 	echo "if [ -f ~/.bashrc ]; then
 	. ~/.bashrc
 fi" > /target/root/.profile
-	echo '[Service]
-ExecStart=
-ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I $TERM' > /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
+	cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
 elif [[ $stype == 2Step ]]; then
 	dialog --msgbox "Installation-Type 2Step is not avaliable right now" 0 0
 fi
 dialog --title "$mtit" --yes-label "$but4" --no-label "$but3" --timeout 10 --yesno "$lan24" 6 0
-if [[ $? == 0 ]]; then
-	umount -a
-	reboot
-elif [[ $? == 255 ]]; then
+reb=$?
+if [ $? = 0 ] || [ $? = 255 ]; then
 	umount -a
 	reboot
 else
