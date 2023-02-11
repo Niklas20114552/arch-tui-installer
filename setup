@@ -242,6 +242,7 @@ fi
 chmod +x /target/usr/bin/desktopinstall
 if [[ ! -f /target/usr/bin/desktopinstall ]]; then
 	dialog --cr-wrap --title "$err3" --msgbox "err8" 0 0
+fi
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
 	arch-chroot /target bash -c "(cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)"
@@ -287,7 +288,7 @@ if [[ $stype == Full ]]; then
 	echo "desktopinstall $de" >> /target/root/.bashrc
 	echo '[Service]
 ExecStart=
-ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I $TERM' > /target/etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
+ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I $TERM' > /target/etc/systemd/system/serial-getty@tty1.service.d/autologin.conf
 elif [[ $stype == 2Step ]]; then
 	dialog --msgbox "Installation-Type 2Step is not avaliable right now" 0 0
 fi
