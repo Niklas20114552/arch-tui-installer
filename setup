@@ -55,6 +55,7 @@ nl_NL) keymap=nl && layout=nl ;;
 it_IT) keymap=it && layout=it ;;
 es_ES) keymap=es && layout=es ;;
 esac
+stype=$(dialog --no-items --cr-wrap --title "$mtit" --menu "$lan27" 13 0 0 Basic Full 2Steps 3>&1 1>&2 2>&3 3>&-)
 loadkeys $keymap
 o2=$(dialog --cr-wrap --no-cancel --title "$tit4" --menu "$lan8" 0 0 0 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
 cd /usr/share/zoneinfo/$o2
@@ -143,16 +144,16 @@ if [[ $? == 1 ]]; then
 else
 	cpu=intel-ucode
 fi
-dialog --cr-wrap --title "AUR-Helper" --extra-button --extra-label "Yay" --help-button --help-label "$but2" --yes-label "Paru" --no-label "Chaotic-AUR" --yesno "$lan22" 0 0
-if [[ $? == 0 ]]; then
+o9=$(dialog --nocancel --cr-wrap --no-items --title "AUR-Helper" --no-label "Chaotic-AUR" --menu "$lan22" 0 0 4 "Paru" "Yay" "Chaotic-AUR" "$but2" 3>&1 1>&2 2>&3 3>&-)
+if [[ $o9 == "Paru" ]]; then
 	aur=paru-bin
 	aurh=paru
-elif [[ $? == 3 ]]; then
+elif [[ $o9 == "Yay" ]]; then
 	aur=yay-bin
 	aurh=yay
-elif [[ $? == 2 ]]; then
+elif [[ "$o9" == "$but2" ]]; then
 	aurh=none
-elif [[ $? == 1 ]]; then
+elif [[ $o9 == "Chaotic-AUR" ]]; then
 	aur=chaotic
 	aurh=chaotic
 fi 
@@ -253,8 +254,40 @@ if [[ $1 == --debug ]]; then
 	echo DEBUG -- PAUSE -- PRESS ENTER
 	read
 fi
-dialog --title "$mtit" --yesno "$lan24" 0 0
+if [[ $stype == Full ]]; then
+	so1=$(dialog --no-items --title "$tit1" --menu "$lan2" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
+	if [[ $so1 == "KDE-Plasma" ]]; then
+	        de=kde
+	elif [[ $so1 == "GNOME" ]]; then
+	        de=gnome
+	elif [[ $so1 == "Xfce4" ]]; then
+	        de=xfce
+	elif [[ $so1 == "Cinnamon" ]]; then
+	        de=cinnamon
+	elif [[ $so1 == "Deepin" ]]; then
+	        de=deepin
+	elif [[ $so1 == "Trinity" ]]; then
+	        de=tde
+	elif [[ $so1 == "MATE" ]]; then
+	        de=mate
+	elif [[ $so1 == "LXQt" ]]; then
+	        de=lxqt
+	elif [[ $so1 == "LXDE" ]]; then
+	        de=lxde
+	fi
+	mkdir -p /target/etc/systemd/system/getty@tty1.service.d
+	echo "desktopinstall $de" >> /target/root/.bashrc
+	echo '[Service]
+ExecStart=
+ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I $TERM' > /target/etc/systemd/system/serial-getty@ttyS0.service.d/autologin.conf
+elif [[ $stype == 2Step ]]; then
+	dialog --msgbox "Installation-Type 2Step is not avaliable right now" 0 0
+fi
+dialog --title "$mtit" --yes-label "$but4" --no-label "$but3" --timeout 10 --yesno "$lan24" 6 0
 if [[ $? == 0 ]]; then
+	umount -a
+	reboot
+elif [[ $? == 255 ]]; then
 	umount -a
 	reboot
 else

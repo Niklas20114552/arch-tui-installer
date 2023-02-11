@@ -1,0 +1,85 @@
+#!/usr/bin/bash
+# SCRIPT - Installs automaticly desktops
+#          It is made for the FULL-Installation Mode
+function iaur() {
+        if [[ $aurh == chaotic ]]; then
+                pacman --noconfirm --needed -S $1
+        else
+                if ! pacman -Qs $1 > /dev/null ; then
+                        git clone https://aur.archlinux.org/$1.git /tmp/$1
+                        (cd /tmp/$1 && /var/setup/sumkpkg -si --noconfirm --skippgpcheck)
+                        rm -rf /tmp/$1
+                fi
+        fi
+}
+rm -rf /etc/systemd/system/getty@tty1.service.d
+sed -i '/^desktopinstall/d' /root/.bashrc 
+lan="$(cat /etc/locale.gen)"
+source /var/setup/setup.conf
+case "$lan" in
+        "de_DE.UTF-8 UTF-8") slan=de ;;
+        "en_US.UTF-8 UTF-8") slan=en ;;
+        "fr_FR.UTF-8 UTF-8") slan=fr ;;
+        "nl_NL.UTF-8 UTF-8") slan=nl ;;
+        "it_IT.UTF-8 UTF-8") slan=it ;;
+        "es_ES.UTF-8 UTF-8") slan=es ;;
+esac
+if [[ ! -f /var/setup/lang.conf ]]; then
+        curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/lang.conf
+fi
+source /var/setup/lang.conf $slan
+de=$1
+firewall-cmd -q --add-port=1025-65535/tcp --permanent
+firewall-cmd -q --add-port=1025-65535/udp --permanent
+firewall-cmd -q --reload
+localectl --no-convert set-x11-keymap $layout
+if [[ $de == kde ]]; then
+        pacman --ignore falkon konqueror --noconfirm --needed -Sy xorg sddm plasma kde-applications firefox vlc papirus-icon-theme materia-kde archlinux-wallpaper
+        systemctl enable sddm
+elif [[ $de == gnome ]]; then
+        iaur bdf-unifont
+        pacman --ignore epiphany --noconfirm --needed -Syu gdm gnome gnome-extra firefox gnome-tweaks arc-gtk-theme arc-icon-theme vlc dina-font tamsyn-font ttf-bitstream-vera ttf-croscore ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-roboto tex-gyre-fonts ttf-ubuntu-font-family ttf-anonymous-pro ttf-cascadia-code ttf-fantasque-sans-mono ttf-fira-mono ttf-hack ttf-fira-code ttf-inconsolata ttf-jetbrains-mono ttf-monofur adobe-source-code-pro-fonts cantarell-fonts inter-font ttf-opensans gentium-plus-font ttf-junicode adobe-source-han-sans-otc-fonts adobe-source-han-serif-otc-fonts noto-fonts-cjk noto-fonts-emoji archlinux-wallpaper
+        systemctl enable gdm
+elif [[ $de == cinnamon ]]; then
+        iaur lightdm-settings
+        pacman --needed --noconfirm -Syu xorg lightdm lightdm-slick-greeter gnome-software cinnamon firefox arc-gtk-theme arc-icon-theme vlc xed xreader metacity archlinux-wallpaper celluloid shotwell gnome-terminal cinnamon-translations nemo-fileroller
+        sed -i '/^greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        systemctl enable lightdm
+elif [[ $de == xfce ]]; then
+        pacman --noconfirm --needed -Syu xorg lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings xfce4 xfce4-goodies firefox arc-gtk-theme arc-icon-theme vlc archlinux-wallpaper
+        systemctl enable lightdm
+elif [[ $de == deepin ]]; then
+        pacman --needed --noconfirm -Syu xorg lightdm deepin deepin-extra firefox archlinux-wallpaper
+        sed -i '/^greeter-session=/c\greeter-session=lightdm-deepin-greeter' /etc/lightdm/lightdm.conf
+        sed -i '/^#greeter-session=/c\greeter-session=lightdm-deepin-greeter' /etc/lightdm/lightdm.conf
+        systemctl enable lightdm
+elif [[ $de == mate ]]; then
+        pacman --noconfirm --needed -Syu xorg lightdm mate mate-extra firefox archlinux-wallpaper lightdm-gtk-greeter lightdm-gtk-greeter-settings
+        systemctl enable lightdm
+elif [[ $de == lxqt ]]; then
+        iaur lightdm-settings
+        pacman --noconfirm --needed -Syu xorg lxqt xdg-utils ttf-freefont libpulse libstatgrab libsysstat lm_sensors network-manager-applet oxygen-icons pavucontrol-qt lightdm lightdm-slick-greeter
+        sed -i '/^greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        systemctl enable lightdm
+elif [[ $de == tde ]]; then
+        if ! grep -q "trinity" "/etc/pacman.conf"; then
+                pacman-key --recv-keys 8685AD8B
+                pacman-key --lsign-key 8685AD8B
+                echo "[trinity]
+Server = https://mirror.ppa.trinitydesktop.org/trinity/archlinux/x86_64" >> /etc/pacman.conf
+        fi
+        pacman --needed --noconfirm -Syyu tde-meta firefox vlc archlinux-wallpaper
+        systemctl enable tdm
+elif [[ $de == lxde ]]; then
+        iaur lightdm-settings
+        iaur python2-bin
+        iaur gamin
+        pacman --needed --noconfirm -Syu lxde lightdm lightdm-slick-greeter vlc firefox celluloid xed arc-gtk-theme arc-icon-theme
+        sed -i '/^greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
+        systemctl enable lightdm
+fi
+dialog --title "Installer" --ok-label "Jetzt neustarten" --timeout 10 --msgbox "Das Setup muss neustarten. \nAutomatischer Neustart in 10 Sekunden." 6 45
+reboot
