@@ -81,7 +81,8 @@ if [[ -d /sys/firmware/efi ]]; then
 else
 	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
 fi
-umount "$boot_drive"*
+umount $boot_drive*
+swapoff $boot_drive*
 cfdisk $boot_drive
 if [[ $nvme == true ]]; then
 	partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
@@ -156,14 +157,34 @@ elif [[ "$o9" == "$but2" ]]; then
 elif [[ $o9 == "Chaotic-AUR" ]]; then
 	aur=chaotic
 	aurh=chaotic
-fi 
+fi
+so1=$(dialog --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
+if [[ $so1 == "KDE-Plasma" ]]; then
+        de=kde
+elif [[ $so1 == "GNOME" ]]; then
+        de=gnome
+elif [[ $so1 == "Xfce4" ]]; then
+        de=xfce
+elif [[ $so1 == "Cinnamon" ]]; then
+        de=cinnamon
+elif [[ $so1 == "Deepin" ]]; then
+        de=deepin
+elif [[ $so1 == "Trinity" ]]; then
+        de=tde
+elif [[ $so1 == "MATE" ]]; then
+        de=mate
+elif [[ $so1 == "LXQt" ]]; then
+        de=lxqt
+elif [[ $so1 == "LXDE" ]]; then
+        de=lxde
+fi
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
 if [[ -d /sys/firmware/efi ]]; then
 	mkdir -p /target/boot/efi
 	mount "$e1" /target/boot/efi
 fi
-pacman --noconfirm -Sy archlinux-keyring
+pacman --noconfirm --needed -Sy archlinux-keyring
 
 pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim vim
 
@@ -242,6 +263,7 @@ fi
 chmod +x /target/usr/bin/desktopinstall
 if [[ ! -f /target/usr/bin/desktopinstall ]]; then
 	dialog --cr-wrap --title "$err3" --msgbox "err8" 0 0
+	stype=Basic
 fi
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
@@ -264,31 +286,14 @@ if [[ $1 == --debug ]]; then
 	read
 fi
 if [[ $stype == Full ]]; then
-	so1=$(dialog --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
-	if [[ $so1 == "KDE-Plasma" ]]; then
-	        de=kde
-	elif [[ $so1 == "GNOME" ]]; then
-	        de=gnome
-	elif [[ $so1 == "Xfce4" ]]; then
-	        de=xfce
-	elif [[ $so1 == "Cinnamon" ]]; then
-	        de=cinnamon
-	elif [[ $so1 == "Deepin" ]]; then
-	        de=deepin
-	elif [[ $so1 == "Trinity" ]]; then
-	        de=tde
-	elif [[ $so1 == "MATE" ]]; then
-	        de=mate
-	elif [[ $so1 == "LXQt" ]]; then
-	        de=lxqt
-	elif [[ $so1 == "LXDE" ]]; then
-	        de=lxde
-	fi
 	mkdir -p /target/etc/systemd/system/getty@tty1.service.d
 	echo "desktopinstall $de" >> /target/root/.bashrc
+	echo "if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi" > /target/root/.profile
 	echo '[Service]
 ExecStart=
-ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I $TERM' > /target/etc/systemd/system/serial-getty@tty1.service.d/autologin.conf
+ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin username %I $TERM' > /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
 elif [[ $stype == 2Step ]]; then
 	dialog --msgbox "Installation-Type 2Step is not avaliable right now" 0 0
 fi

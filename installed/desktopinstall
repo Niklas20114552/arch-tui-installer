@@ -13,6 +13,7 @@ function iaur() {
         fi
 }
 rm -rf /etc/systemd/system/getty@tty1.service.d
+rm /root/.profile
 sed -i '/^desktopinstall/d' /root/.bashrc 
 lan="$(cat /etc/locale.gen)"
 source /var/setup/setup.conf
