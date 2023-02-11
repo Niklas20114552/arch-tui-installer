@@ -42,6 +42,10 @@ source /var/setup/setup.conf
 case "$lan" in
 	"de_DE.UTF-8 UTF-8") slan=de && ask=Deutsch ;;
 	"en_US.UTF-8 UTF-8") slan=en && ask=English ;;
+	"fr_FR.UTF-8 UTF-8") slan=fr && ask=Français ;;
+	"nl_NL.UTF-8 UTF-8") slan=nl && ask=Nederlands ;;
+	"it_IT.UTF-8 UTF-8") slan=it && ask=Italiano ;;
+	"es_ES.UTF-8 UTF-8") slan=es && ask=Español ;;
 esac
 if [[ ! -f /var/setup/lang.conf ]]; then
         curl -o /var/setup/lang.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/lang.conf
