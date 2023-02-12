@@ -55,8 +55,8 @@ nl_NL) keymap=nl && layout=nl ;;
 it_IT) keymap=it && layout=it ;;
 es_ES) keymap=es && layout=es ;;
 esac
-stype=$(dialog --no-items --cr-wrap --title "$mtit" --menu "$lan27" 13 0 0 Basic Full 2Steps 3>&1 1>&2 2>&3 3>&-)
 loadkeys $keymap
+stype=$(dialog --no-items --cr-wrap --title "$mtit" --menu "$lan27" 13 0 0 Basic Full 2Steps 3>&1 1>&2 2>&3 3>&-)
 o2=$(dialog --cr-wrap --no-cancel --title "$tit4" --menu "$lan8" 0 0 0 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
 cd /usr/share/zoneinfo/$o2
 tzone=$(echo *)
@@ -159,7 +159,7 @@ elif [[ $o9 == "Chaotic-AUR" ]]; then
 	aurh=chaotic
 fi
 if [[ $stype == Full ]]; then
-	so1=$(dialog --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
+	so1=$(dialog --no-cancel --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
 	if [[ $so1 == "KDE-Plasma" ]]; then
         	de=kde
 	elif [[ $so1 == "GNOME" ]]; then
@@ -300,13 +300,10 @@ if [[ $stype == Full ]]; then
 fi" > /target/root/.profile
 	cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
 elif [[ $stype == 2Step ]]; then
+	# THIS WILL MOVE INTO A SEPARATE FILE
+	#cp /var/setup/lang.conf /target/var/setup/2step.conf
 	dialog --msgbox "Installation-Type 2Step is not avaliable right now" 0 0
 fi
-dialog --title "$mtit" --yes-label "$but4" --no-label "$but3" --timeout 10 --yesno "$lan24" 6 0
-reb=$?
-if [ $? = 0 ] || [ $? = 255 ]; then
-	umount -a
-	reboot
-else
-	echo -e "$lan25"
-fi
+dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 6 0
+umount -a
+reboot
