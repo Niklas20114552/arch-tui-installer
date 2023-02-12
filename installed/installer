@@ -175,7 +175,6 @@ elif [[ $de == lxde ]]; then
         sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
         systemctl enable lightdm
 fi
-dialog --title "Setup" --yesno "Jetzt neustarten?" 0 0
-if [[ $? == 0 ]]; then
-	reboot
-fi
+dialog --title "Installer" --ok-label "$but3" --timeout 10 --msgbox "$lan5" 0 0
+reboot
+
