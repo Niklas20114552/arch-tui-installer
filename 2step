@@ -1,0 +1,165 @@
+#!/usr/bin/bash
+# SCRIPT - Installation Script
+#          Installation-Modes:
+#          - 2Step
+slan=$1
+source /var/setup/lang.conf $slan
+d1=$(find /dev/sd* -not -name '*[0-9]' | tr "\n" " ")
+d2=$(find /dev/vd* -not -name '*[0-9]' | tr "\n" " ")
+d3=$(find /dev/hd* -not -name '*[0-9]' | tr "\n" " ")
+d4=$(find /dev/nvme0n* -not -name '*p[0-9]' | tr "\n" " ")
+drives="$d1 $d2 $d3 $d4"
+drives=$(echo $drives)
+o6=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit6" --menu "$lan10 \n\n$(lsblk --output NAME,MODEL,PARTTYPENAME,SIZE /dev/{vd*[!0-9],sd*[!0-9],hd*[!0-9],nvme0n[0-9]})" 0 0 0 $drives 3>&1 1>&2 2>&3 3>&-)
+if [[ $o6 == /dev/nvme* ]]; then
+        nvme=true
+else
+        nvme=false
+fi
+boot_drive=$o6
+if [[ -d /sys/firmware/efi ]]; then
+        dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
+else
+        dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
+fi
+umount $boot_drive*
+swapoff $boot_drive*
+cfdisk $boot_drive
+if [[ $nvme == true ]]; then
+        partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
+        partition=$(echo $partition)
+        if [[ "$partition" == "" ]]; then
+                partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
+                partition=$(echo $partition)
+                if [[ "$partition" == "" ]]; then
+                        dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+                        exit
+                fi
+        fi
+else
+        partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
+        partition=$(echo $partition)
+        if [[ "$partition" == "" ]]; then
+                partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+                partition=$(echo $partition)
+                if [[ "$partition" == "" ]]; then
+                        dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+                        exit
+                fi
+        fi
+fi
+lsblk $o6
+if [[ -d /sys/firmware/efi ]]; then
+        e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+        dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
+        if [[ $? == 0 ]]; then
+                yes | mkfs.vfat $e1
+        fi
+fi
+o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
+if [[ $? == 1 ]]; then
+        dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
+        exit
+fi
+yes | mkfs.ext4 $o7
+
+dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
+if [[ $? == 0 ]]; then
+        swap=yes
+        o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+        yes | mkswap $o8
+fi
+dialog --cr-wrap --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 0 0
+if [[ $? == 1 ]]; then
+        gpu=xf86-video-amdgpu
+else
+        gpu="nvidia nvidia-utils nvidia-settings"
+fi
+dialog --cr-wrap --title "$tit12" --no-label AMD --yes-label Intel --yesno "$lan21" 0 0
+if [[ $? == 1 ]]; then
+        cpu=amd-ucode
+else
+        cpu=intel-ucode
+fi
+dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
+mount "$o7" /target
+if [[ -d /sys/firmware/efi ]]; then
+        mkdir -p /target/boot/efi
+        mount "$e1" /target/boot/efi
+fi
+pacman --noconfirm --needed -Sy archlinux-keyring
+
+pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim vim
+
+if [[ $swap == yes ]]; then
+        swapon "$o8"
+fi
+
+genfstab -U /target >> /target/etc/fstab
+if [[ -d /sys/firmware/efi ]]; then
+        grub="grub efibootmgr"
+else
+        grub="grub"
+fi
+arch-chroot /target bash -c "pacman --needed --noconfirm -Sy $gpu $grub networkmanager network-manager-applet dialog wpa_supplicant mtools dosfstools reflector base-devel linux-headers avahi xdg-user-dirs xdg-utils gvfs gvfs-smb nfs-utils inetutils dnsutils bluez bluez-utils cups hplip alsa-utils pulseaudio bash-completion openssh rsync reflector acpi acpi_call tlp edk2-ovmf bridge-utils dnsmasq vde2 openbsd-netcat iptables-nft ipset firewalld flatpak sof-firmware nss-mdns acpid os-prober ntfs-3g terminus-font numlockx wget man-db neofetch cargo nvme-cli"
+echo "echo 'root:$root_pass' | chpasswd" > /target/chpasswd.sh
+sed -i "s/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/" /target/etc/default/grub
+if [[ -d /sys/firmware/efi ]]; then
+        arch-chroot /target bash -c "grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB"
+else
+        arch-chroot /target bash -c "grub-install --target=i386-pc $boot_drive"
+fi
+arch-chroot /target bash -c "grub-mkconfig -o /boot/grub/grub.cfg"
+arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
+# NOTE: The User will change this after a reboot
+arch-chroot /target bash -c "echo root:root | chpasswd"
+if [[ -f /var/setup/installed.conf ]]; then
+        cp /var/setup/installed.conf /target/var/setup/lang.conf
+else
+        curl -o /var/setup/installed.conf https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/lang.conf
+fi
+if [[ -f /var/setup/installer ]]; then
+        cp /var/setup/installer /target/usr/bin/installer
+else
+        curl -o /target/usr/bin/installer https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/installer
+fi
+chmod +x /target/usr/bin/installer
+if [[ ! -f /target/usr/bin/installer ]]; then
+        dialog --cr-wrap --title "$err2" --msgbox "$err6" 0 0
+fi
+if [[ -f /var/setup/sumkpkg ]]; then
+        cp /var/setup/sumkpkg /target/var/setup/sumkpkg
+else
+        curl -o /target/var/setup/sumkpkg https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/sumkpkg
+fi
+chmod +x /target/var/setup/sumkpkg
+if [[ ! -f /target/var/setup/sumkpkg ]]; then
+        dialog --cr-wrap --title "$err2" --msgbox "$err7" 0 0
+        exit
+fi
+if [[ ! -f /var/setup/autlogin.tmp ]]; then
+        curl -o /var/setup/autologin.tmp https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/autologin.tmp
+fi
+if [[ -f /var/setup/desktopinstall ]]; then
+        cp /var/setup/desktopinstall /target/usr/bin/desktopinstall
+else
+        curl -o /target/usr/bin/desktopinstall https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/destopinstall
+fi
+chmod +x /target/usr/bin/desktopinstall
+if [[ ! -f /target/usr/bin/desktopinstall ]]; then
+        dialog --cr-wrap --title "$err2" --msgbox "$err8b" 0 0
+	exit
+fi
+cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
+cp -rf /var/lib/iwd /target/var/lib/iwd
+cp -f /var/setup/lang.conf /target/var/setup/2step.conf
+mkdir -p /target/etc/systemd/system/getty@tty1.service.d
+echo "setup" >> /target/root/.bashrc
+echo "if [ -f ~/.bashrc ]; then
+. ~/.bashrc
+fi" > /target/root/.profile
+cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
+dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 6 0
+umount -a
+reboot
