@@ -114,6 +114,7 @@ arch-chroot /target bash -c "grub-mkconfig -o /boot/grub/grub.cfg"
 arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.service avahi-daemon tlp reflector.timer fstrim.timer firewalld acpid"
 # NOTE: The User will change this after a reboot
 arch-chroot /target bash -c "echo root:root | chpasswd"
+mkdir -p /target/var/setup
 if [[ -f /var/setup/installed.conf ]]; then
         cp /var/setup/installed.conf /target/var/setup/lang.conf
 else
@@ -151,6 +152,11 @@ if [[ ! -f /target/usr/bin/desktopinstall ]]; then
         dialog --cr-wrap --title "$err2" --msgbox "$err8b" 0 0
 	exit
 fi
+if [[ ! -f /var/setup/setup ]]; then
+	curl -o /target/usr/bin/setup https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/setup
+else
+	cp -r /var/setup/setup /target/usr/bin/setup
+fi
 cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
 cp -rf /var/lib/iwd /target/var/lib/iwd
 cp -f /var/setup/lang.conf /target/var/setup/2step.conf
@@ -160,6 +166,6 @@ echo "if [ -f ~/.bashrc ]; then
 . ~/.bashrc
 fi" > /target/root/.profile
 cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
-dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 6 0
+dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 0 0
 umount -a
 reboot

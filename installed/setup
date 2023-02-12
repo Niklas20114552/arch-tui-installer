@@ -105,10 +105,11 @@ echo $o5 > /etc/hostname
 echo "127.0.0.1 localhost" >> /etc/hosts
 echo "::1       localhost" >> /etc/hosts
 echo "127.0.1.1 $hostname.local $hostname" >> /etc/hosts
+echo "root:$root_pass" | chpasswd
 useradd -mG wheel $user_name
-echo '$user_name:$user_pass' | chpasswd
+echo "$user_name:$user_pass" | chpasswd
 echo "%wheel ALL=(ALL:ALL) ALL" > /etc/sudoers.d/wheel
-chfn --full-name '$full_name' $user_name
+chfn --full-name "$full_name" $user_name
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
         git clone https://aur.archlinux.org/$aur.git /tmp_aur
         (cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)
