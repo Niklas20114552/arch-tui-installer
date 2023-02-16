@@ -12,6 +12,8 @@ When you're done, please submit it via the Issue-Tab, with the Title:
 
 Translation: [YOUR-LANGUAGE]
 
+## Troubleshooting
+
 ### UEFI with QEMU:
 
 When you are having troubles booting the ISO:
