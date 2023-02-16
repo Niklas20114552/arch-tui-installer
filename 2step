@@ -2,6 +2,112 @@
 # SCRIPT - Installation Script
 #          Installation-Modes:
 #          - 2Step
+function part_manual() {
+	cfdisk $boot_drive
+	if [[ $nvme == true ]]; then
+	boot_drive=$o6
+	if [[ -d /sys/firmware/efi ]]; then
+        dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
+	else
+        dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
+	fi
+	        partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
+	        partition=$(echo $partition)
+	        if [[ "$partition" == "" ]]; then
+	                partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
+	                partition=$(echo $partition)
+	                if [[ "$partition" == "" ]]; then
+	                        dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+	                        exit
+	                fi
+	        fi
+	else
+	        partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
+	        partition=$(echo $partition)
+	        if [[ "$partition" == "" ]]; then
+	                partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+	                partition=$(echo $partition)
+	                if [[ "$partition" == "" ]]; then
+	                        dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+	                        exit
+	                fi
+	        fi
+	fi
+	lsblk $o6
+	if [[ -d /sys/firmware/efi ]]; then
+	        e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	        dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
+	        if [[ $? == 0 ]]; then
+                yes | mkfs.vfat $e1
+	        fi
+	fi
+	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
+	if [[ $? == 1 ]]; then
+	        dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
+	        exit
+	fi
+	yes | mkfs.ext4 $o7
+	
+	dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
+	if [[ $? == 0 ]]; then
+	        swap=yes
+	        o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	        yes | mkswap $o8
+	fi
+}
+function part_automatic() {
+	dialog --cr-wrap --title "$tit8 $boot_drive" --default-button no --yesno "$lan31"
+	if [[ $? == 1 ]]; then
+		dialog --cr-wrap --title "$err2" --msgbox "$err9" 0 0
+		exit
+	fi
+	if [[ -d /sys/firmware/efi ]]; then
+		echo "o
+y
+n
+
+
+300M
+ef00
+n
+
+
+5G
+8200
+n
+
+
+
+8300
+w
+y" | gdisk $boot_drive
+		swap=yes
+		yes | mkfs.vfat "$boot_drive"1
+		yes | mkswap "$boot_drive"2
+		yes | mkfs.ext4 "$boot_drive"3
+	else
+		echo "o
+n
+p
+
+
++5G
+t
+82
+n
+p
+
+
+
+a
+2
+w" | fdisk $boot_drive
+		swap=yes
+		yes | mkswap "$boot_drive"1
+		yes | mkfs.ext4 "$boot_drive"2
+	fi
+}
 slan=$1
 source /var/setup/lang.conf $slan
 d1=$(find /dev/sd* -not -name '*[0-9]' | tr "\n" " ")
@@ -16,59 +122,13 @@ if [[ $o6 == /dev/nvme* ]]; then
 else
         nvme=false
 fi
-boot_drive=$o6
-if [[ -d /sys/firmware/efi ]]; then
-        dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
-else
-        dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
-fi
 umount $boot_drive*
 swapoff $boot_drive*
-cfdisk $boot_drive
-if [[ $nvme == true ]]; then
-        partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
-        partition=$(echo $partition)
-        if [[ "$partition" == "" ]]; then
-                partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
-                partition=$(echo $partition)
-                if [[ "$partition" == "" ]]; then
-                        dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-                        exit
-                fi
-        fi
-else
-        partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
-        partition=$(echo $partition)
-        if [[ "$partition" == "" ]]; then
-                partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
-                partition=$(echo $partition)
-                if [[ "$partition" == "" ]]; then
-                        dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-                        exit
-                fi
-        fi
-fi
-lsblk $o6
-if [[ -d /sys/firmware/efi ]]; then
-        e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-        dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
-        if [[ $? == 0 ]]; then
-                yes | mkfs.vfat $e1
-        fi
-fi
-o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
-if [[ $? == 1 ]]; then
-        dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
-        exit
-fi
-yes | mkfs.ext4 $o7
-
-dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
-if [[ $? == 0 ]]; then
-        swap=yes
-        o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-        yes | mkswap $o8
+o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
+if [[ $o10 == "$but5b" ]]; then
+	part_automatic
+elif [[ $o10 == "$but6b" ]]; then
+	part_manual
 fi
 dialog --cr-wrap --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 0 0
 if [[ $? == 1 ]]; then
