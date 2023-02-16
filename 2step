@@ -83,12 +83,21 @@ n
 w
 y" | gdisk $boot_drive
 		swap=yes
-		yes | mkfs.vfat "$boot_drive"1
-		e1="$boot_drive"1
-		yes | mkswap "$boot_drive"2
-		o8="$boot_drive"2
-		yes | mkfs.ext4 "$boot_drive"3
-		o7="$boot_drive"3
+		if [[ $nvme == true ]]; then
+			yes | mkfs.vfat "$boot_drive"p1
+			e1="$boot_drive"p1
+			yes | mkswap "$boot_drive"p2
+			o8="$boot_drive"p2
+			yes | mkfs.ext4 "$boot_drive"p3
+			o7="$boot_drive"p3
+		else
+			yes | mkfs.vfat "$boot_drive"1
+			e1="$boot_drive"1
+			yes | mkswap "$boot_drive"2
+			o8="$boot_drive"2
+			yes | mkfs.ext4 "$boot_drive"3
+			o7="$boot_drive"3
+		fi
 	else
 		echo "o
 n
@@ -107,10 +116,17 @@ a
 2
 w" | fdisk $boot_drive
 		swap=yes
-		yes | mkswap "$boot_drive"1
-		o8="$boot_drive"1
-		yes | mkfs.ext4 "$boot_drive"2
-		o7="$boot_drive"2
+		if [[ $nvme == true ]]; then
+			yes | mkswap "$boot_drive"p1
+			o8="$boot_drive"p1
+			yes | mkfs.ex4 "$boot_drive"p2
+			o7="$boot_drive"p2
+		else
+			yes | mkswap "$boot_drive"1
+			o8="$boot_drive"1
+			yes | mkfs.ext4 "$boot_drive"2
+			o7="$boot_drive"2
+		fi
 	fi
 }
 slan=$1
