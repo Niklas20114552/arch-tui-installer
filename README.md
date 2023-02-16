@@ -6,7 +6,7 @@ It's based on the [Arch Basic Install](https://gitlab.com/sontypiminternet/arch-
 
 # I need your help!
 
-You can download both ```lang.conf``` (there is also one in the ```installed``` folder) file and make a translation.
+You can download both ```lang.conf``` (there is also one in the ```installed``` folder) files and make a translation.
 
 When you're done, please submit it via the Issue-Tab, with the Title:
 
