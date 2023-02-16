@@ -23,6 +23,61 @@ function userpw() {
 		userpw
 	fi
 }
+function part_manual() {
+	if [[ -d /sys/firmware/efi ]]; then
+		dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
+	else
+		dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
+	fi
+	cfdisk $boot_drive
+	if [[ $nvme == true ]]; then
+		partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
+		partition=$(echo $partition)
+		if [[ "$partition" == "" ]]; then
+			partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
+			partition=$(echo $partition)
+			if [[ "$partition" == "" ]]; then
+				dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+				exit
+			fi
+		fi
+	else
+		partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
+		partition=$(echo $partition)
+		if [[ "$partition" == "" ]]; then
+		        partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+		        partition=$(echo $partition)
+		        if [[ "$partition" == "" ]]; then
+		                dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+		                exit
+		        fi
+		fi
+	fi
+	lsblk $o6
+	if [[ -d /sys/firmware/efi ]]; then
+		e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
+		if [[ $? == 0 ]]; then
+			yes | mkfs.vfat $e1
+		fi
+	fi
+	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
+	if [[ $? == 1 ]]; then
+		dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
+		exit
+	fi
+	yes | mkfs.ext4 $o7
+	dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
+	if [[ $? == 0 ]]; then
+		swap=yes
+		o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		yes | mkswap $o8
+	fi
+}
+function part_automatic() {
+	
+}
 if [[ ! -f /usr/bin/dialog ]]; then
 	echo Please install: dialog
 	exit
@@ -84,58 +139,13 @@ else
 	nvme=false
 fi
 boot_drive=$o6
-if [[ -d /sys/firmware/efi ]]; then
-	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
-else
-	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
-fi
 umount $boot_drive*
 swapoff $boot_drive*
-cfdisk $boot_drive
-if [[ $nvme == true ]]; then
-	partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
-	partition=$(echo $partition)
-	if [[ "$partition" == "" ]]; then
-		partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
-		partition=$(echo $partition)
-		if [[ "$partition" == "" ]]; then
-			dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-			exit
-		fi
-	fi
-else
-	partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
-	partition=$(echo $partition)
-	if [[ "$partition" == "" ]]; then
-	        partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
-	        partition=$(echo $partition)
-	        if [[ "$partition" == "" ]]; then
-	                dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-	                exit
-	        fi
-	fi
-fi
-lsblk $o6
-if [[ -d /sys/firmware/efi ]]; then
-	e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-	dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
-	if [[ $? == 0 ]]; then
-		yes | mkfs.vfat $e1
-	fi
-fi
-o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
-if [[ $? == 1 ]]; then
-	dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
-	exit
-fi
-yes | mkfs.ext4 $o7
-
-dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
-if [[ $? == 0 ]]; then
-	swap=yes
-	o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-	yes | mkswap $o8
+o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
+if [[ $o10 == "$but5b" ]]; then
+	part_automatic
+elif [[ $o10 == "$but6b" ]]; then
+	part_manual
 fi
 rootpw
 user_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan19" 0 0 3>&1 1>&2 2>&3 3>&-)
