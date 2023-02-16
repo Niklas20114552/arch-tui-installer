@@ -76,7 +76,7 @@ function part_manual() {
 	fi
 }
 function part_automatic() {
-	dialog --cr-wrap --title "$tit8 $boot_drive" --default-button no --yesno "$lan31"
+	dialog --cr-wrap --title "$tit8 $boot_drive" --default-button no --yesno "$lan31" 0 0
 	if [[ $? == 1 ]]; then
 		dialog --cr-wrap --title "$err2" --msgbox "$err9" 0 0
 		exit
@@ -103,8 +103,11 @@ w
 y" | gdisk $boot_drive
 		swap=yes
 		yes | mkfs.vfat "$boot_drive"1
+		e1="$boot_drive"1
 		yes | mkswap "$boot_drive"2
+		o8="$boot_drive"2
 		yes | mkfs.ext4 "$boot_drive"3
+		o7="$boot_drive"3
 	else
 		echo "o
 n
@@ -124,7 +127,9 @@ a
 w" | fdisk $boot_drive
 		swap=yes
 		yes | mkswap "$boot_drive"1
+		o8="$boot_drive"1
 		yes | mkfs.ext4 "$boot_drive"2
+		o7="$boot_drive"2
 	fi
 }
 if [[ ! -f /usr/bin/dialog ]]; then
@@ -190,7 +195,7 @@ fi
 boot_drive=$o6
 umount $boot_drive*
 swapoff $boot_drive*
-o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
+o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
 if [[ $o10 == "$but5b" ]]; then
 	part_automatic
 elif [[ $o10 == "$but6b" ]]; then
