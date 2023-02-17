@@ -5,7 +5,6 @@
 function part_manual() {
 	cfdisk $boot_drive
 	if [[ $nvme == true ]]; then
-	boot_drive=$o6
 	if [[ -d /sys/firmware/efi ]]; then
         dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
 	else
@@ -143,6 +142,7 @@ if [[ $o6 == /dev/nvme* ]]; then
 else
         nvme=false
 fi
+boot_drive=$o6
 umount $boot_drive*
 swapoff $boot_drive*
 o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
