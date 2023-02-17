@@ -220,7 +220,7 @@ if [[ ! -f /target/var/setup/sumkpkg ]]; then
         dialog --cr-wrap --title "$err2" --msgbox "$err7" 0 0
         exit
 fi
-if [[ ! -f /var/setup/autlogin.tmp ]]; then
+if [[ ! -f /var/setup/autologin.tmp ]]; then
         curl -o /var/setup/autologin.tmp https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/autologin.tmp
 fi
 if [[ -f /var/setup/desktopinstall ]]; then
@@ -238,10 +238,11 @@ if [[ ! -f /var/setup/setup ]]; then
 else
 	cp -r /var/setup/setup /target/usr/bin/setup
 fi
+chmod +x /target/usr/bin/setup
 cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
 cp -rf /var/lib/iwd /target/var/lib/iwd
 cp -f /var/setup/lang.conf /target/var/setup/2step.conf
-mkdir -p /target/etc/systemd/system/getty@tty1.service.d
+mkdir -p "/target/etc/systemd/system/getty@tty1.service.d"
 echo "setup" >> /target/root/.bashrc
 echo "if [ -f ~/.bashrc ]; then
 . ~/.bashrc
