@@ -43,7 +43,7 @@ case $slan in
         es) libreoffice=libreoffice-still-es ;;
 esac
 if [[ $de == kde ]]; then
-        pacman --ignore falkon konqueror --noconfirm --needed -Sy xorg sddm plasma kde-applications firefox vlc papirus-icon-theme materia-kde archlinux-wallpaper $libreoffice
+        pacman --ignore konqueror --noconfirm --needed -Sy xorg sddm plasma kde-applications vlc papirus-icon-theme materia-kde archlinux-wallpaper $libreoffice
         systemctl enable sddm
 elif [[ $de == gnome ]]; then
         iaur bdf-unifont
