@@ -345,7 +345,7 @@ if [[ ! -f /target/var/setup/sumkpkg ]]; then
 	dialog --cr-wrap --title "$err2" --msgbox "$err7" 0 0
 	exit
 fi
-if [[ ! -f /var/setup/autlogin.tmp ]]; then
+if [[ ! -f /var/setup/autologin.tmp ]]; then
 	curl -o /var/setup/autologin.tmp https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/autologin.tmp
 fi
 if [[ -f /var/setup/desktopinstall ]]; then
