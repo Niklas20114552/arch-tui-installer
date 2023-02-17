@@ -68,7 +68,7 @@ elif [[ $o9 == "Chaotic-AUR" ]]; then
         aur=chaotic
         aurh=chaotic
 fi
-so1=$(dialog --no-cancel --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE "$but4" 3>&1 1>&2 2>&3 3>&-)
+so1=$(dialog --no-cancel --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE "$but7" 3>&1 1>&2 2>&3 3>&-)
 if [[ $so1 == "KDE-Plasma" ]]; then
 	de=kde
 elif [[ $so1 == "GNOME" ]]; then
