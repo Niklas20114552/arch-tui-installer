@@ -388,6 +388,6 @@ if [[ $stype == Full ]]; then
 fi" > /target/root/.profile
 	cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
 fi
-dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 6 0
+dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 0 0
 umount -a
 reboot
