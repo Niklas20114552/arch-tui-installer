@@ -374,7 +374,11 @@ Include = /etc/pacman.d/chaotic-mirrorlist
 Include = /etc/pacman.d/mirrorlist" >> /target/etc/pacman.conf
 	arch-chroot /target bash -c "pacman --noconfirm --needed -Syy"
 fi
-cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
+if [ -e /etc/iwd/main.conf ]; then
+  cp /etc/iwd/main.conf /target/etc/iwd/main.conf
+else
+  echo "/etc/iwd/main.conf does not exist. Skipped."
+fi
 cp -rf /var/lib/iwd /target/var/lib/iwd 
 if [[ $1 == --debug ]]; then
 	echo DEBUG -- PAUSE -- PRESS ENTER
