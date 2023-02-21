@@ -1,0 +1,134 @@
+#!/usr/bin/bash
+# SCRIPT - Configure the installed system. (Like OOBE in Windows)
+#          It is made for the 2STEP-Installation Mode
+function rootpw() {
+        p1=$(dialog --cr-wrap --no-cancel --title "$tit1" --passwordbox "$lan1" 10 45 3>&1 1>&2 2>&3 3>&-)
+        c1=$(dialog --cr-wrap --no-cancel --title "$tit1" --passwordbox "$lan2" 10 45 3>&1 1>&2 2>&3 3>&-)
+        if [[ "$p1" == "$c1" ]]; then
+                root_pass="$p1"
+        else
+                dialog --cr-wrap --title "$tit1" --msgbox "$lan5" 0 0
+                rootpw
+        fi
+}
+function userpw() {
+        p2=$(dialog --cr-wrap --no-cancel --title "$tit2" --passwordbox "$lan3" 10 45 3>&1 1>&2 2>&3 3>&-)
+        c2=$(dialog --cr-wrap --no-cancel --title "$tit2" --passwordbox "$lan4" 11 45 3>&1 1>&2 2>&3 3>&-)
+        if [[ "$p2" == "$c2" ]]; then
+                user_pass="$p2"
+        else
+                dialog --cr-wrap --title "$tit2" --msgbox "$lan5" 0 0
+                userpw
+        fi
+}
+rm -rf /etc/systemd/system/getty@tty1.service.d
+rm /root/.profile
+sed -i '/^setup/d' /root/.bashrc
+o4=$(dialog --cr-wrap --no-cancel --title "Language" --menu "Please choose your language." 0 0 0 "de_DE.UTF-8" "Deutsch" "en_US.UTF-8" "English (US)" "fr_FR.UTF-8" "Français" "nl_NL.UTF-8" "Nederlands" "it_IT.UTF-8" "Italiano" "es_ES.UTF-8" "Español" 3>&1 1>&2 2>&3 3>&-)
+case $o4 in
+de_DE.UTF-8) local="de_DE.UTF-8" && locale="de_DE.UTF-8 UTF-8" && slan=de ;;
+en_US.UTF-8) local="en_US.UTF-8" && locale="en_US.UTF-8 UTF-8" && slan=en ;;
+fr_FR.UTF-8) local="fr_FR.UTF-8" && locale="fr_FR.UTF-8 UTF-8" && slan=fr ;;
+nl_NL.UTF-8) local="nl_NL.UTF-8" && locale="nl_NL.UTF-8 UTF-8" && slan=nl ;;
+it_IT.UTF-8) local="it_IT.UTF-8" && locale="it_IT.UTF-8 UTF-8" && slan=it ;;
+es_ES.UTF-8) local="es_ES.UTF-8" && locale="es_ES.UTF-8 UTF-8" && slan=es ;;
+esac
+source /var/setup/2step.conf $slan
+o1=$(dialog --cr-wrap --no-cancel --title "$tit3" --menu "$lan7" 0 0 0 de_DE "Deutsch" de_CH "Deutsch (Schweiz)" en_US "English" fr_FR "Français" nl_NL "Nederlands" it_IT "Italiano" es_ES "Español" 3>&1 1>&2 2>&3 3>&-)
+case $o1 in
+de_DE) keymap=de-latin1 && layout=de ;;
+de_CH) keymap=de_CH-latin1 && layout=ch ;;
+en_US) keymap=en && layout=en ;;
+ft_FR) keymap=fr && layout=fr ;;
+nl_NL) keymap=nl && layout=nl ;;
+it_IT) keymap=it && layout=it ;;
+es_ES) keymap=es && layout=es ;;
+esac
+loadkeys $keymap
+o2=$(dialog --cr-wrap --no-cancel --title "$tit4" --menu "$lan8" 0 0 0 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
+cd /usr/share/zoneinfo/$o2
+tzone=$(echo *)
+o3=$(dialog --cr-wrap --no-cancel --no-items --title "$tit4" --menu "$lan8" 0 0 0 $tzone 3>&1 1>&2 2>&3 3>&-)
+timezone=/usr/share/zoneinfo/$o2/$o3
+o5=$(dialog --cr-wrap --no-cancel --title "$tit5" --inputbox "$lan9" 0 0 3>&1 1>&2 2>&3 3>&-)
+rootpw
+user_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan19" 0 0 3>&1 1>&2 2>&3 3>&-)
+full_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan26" 0 0 3>&1 1>&2 2>&3 3>&-)
+userpw
+o9=$(dialog --no-cancel --cr-wrap --no-items --title "AUR-Helper" --no-label "Chaotic-AUR" --menu "$lan22" 0 0 4 "Paru" "Yay" "Chaotic-AUR" "$but2" 3>&1 1>&2 2>&3 3>&-)
+if [[ $o9 == "Paru" ]]; then
+        aur=paru-bin
+        aurh=paru
+elif [[ $o9 == "Yay" ]]; then
+        aur=yay-bin
+        aurh=yay
+elif [[ "$o9" == "$but2" ]]; then
+        aurh=none
+elif [[ $o9 == "Chaotic-AUR" ]]; then
+        aur=chaotic
+        aurh=chaotic
+fi
+so1=$(dialog --no-cancel --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE "$but7" 3>&1 1>&2 2>&3 3>&-)
+if [[ $so1 == "KDE-Plasma" ]]; then
+	de=kde
+elif [[ $so1 == "GNOME" ]]; then
+	de=gnome
+elif [[ $so1 == "Xfce4" ]]; then
+	de=xfce
+elif [[ $so1 == "Cinnamon" ]]; then
+	de=cinnamon
+elif [[ $so1 == "Deepin" ]]; then
+	de=deepin
+elif [[ $so1 == "Trinity" ]]; then
+	de=tde
+elif [[ $so1 == "MATE" ]]; then
+	de=mate
+elif [[ $so1 == "LXQt" ]]; then
+	de=lxqt
+elif [[ $so1 == "LXDE" ]]; then
+	de=lxde
+else
+	de=none
+fi
+dialog --cr-wrap --title "$mtit" --msgbox "$lan29" 0 0
+ln -sf $timezone /etc/localtime
+hwclock --systohc
+timedatectl set-ntp true
+echo "$locale" > /etc/locale.gen
+locale-gen
+echo "LANG=$local" > /etc/locale.conf
+echo "KEYMAP=$keymap" > /etc/vconsole.conf
+echo '#!/usr/bin/bash' > /var/setup/setup.conf
+echo "layout=$layout" >> /var/setup/setup.conf
+echo "aurh=$aurh" >> /var/setup/setup.conf
+echo $o5 > /etc/hostname
+echo "127.0.0.1 localhost" >> /etc/hosts
+echo "::1       localhost" >> /etc/hosts
+echo "127.0.1.1 $hostname.local $hostname" >> /etc/hosts
+echo "root:$root_pass" | chpasswd
+useradd -mG wheel $user_name
+echo "$user_name:$user_pass" | chpasswd
+echo "%wheel ALL=(ALL:ALL) ALL" > /etc/sudoers.d/wheel
+chfn --full-name "$full_name" $user_name
+if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
+        git clone https://aur.archlinux.org/$aur.git /tmp_aur
+        (cd /tmp_aur && /var/setup/sumkpkg -si --noconfirm)
+        rm -rf /tmp_aur
+fi
+if [[ "$aur" == "chaotic" ]]; then
+        pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
+        pacman-key --lsign-key FBA220DFC880C036
+        pacman --needed --noconfirm -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
+        echo "[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
+        pacman --noconfirm --needed -Syy
+fi
+if [[ $de != "none" ]]; then
+	desktopinstall $de
+else
+	dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 6 45
+	reboot
+fi

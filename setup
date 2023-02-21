@@ -1,4 +1,8 @@
 #!/usr/bin/bash
+# SCRIPT - Main Installation Script
+#          Installation-Modes:
+#          - Basic
+#          - Full
 function rootpw() {
 	p1=$(dialog --cr-wrap --no-cancel --title "$tit1" --passwordbox "$lan1" 10 45 3>&1 1>&2 2>&3 3>&-)
 	c1=$(dialog --cr-wrap --no-cancel --title "$tit1" --passwordbox "$lan2" 10 45 3>&1 1>&2 2>&3 3>&-)
@@ -17,6 +21,131 @@ function userpw() {
 	else
 		dialog --cr-wrap --title "$tit2" --msgbox "$lan5" 0 0
 		userpw
+	fi
+}
+function part_manual() {
+	if [[ -d /sys/firmware/efi ]]; then
+		dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
+	else
+		dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
+	fi
+	cfdisk $boot_drive
+	if [[ $nvme == true ]]; then
+		partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
+		partition=$(echo $partition)
+		if [[ "$partition" == "" ]]; then
+			partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
+			partition=$(echo $partition)
+			if [[ "$partition" == "" ]]; then
+				dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+				exit
+			fi
+		fi
+	else
+		partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
+		partition=$(echo $partition)
+		if [[ "$partition" == "" ]]; then
+		        partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+		        partition=$(echo $partition)
+		        if [[ "$partition" == "" ]]; then
+		                dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+		                exit
+		        fi
+		fi
+	fi
+	lsblk $o6
+	if [[ -d /sys/firmware/efi ]]; then
+		e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
+		if [[ $? == 0 ]]; then
+			yes | mkfs.vfat $e1
+		fi
+	fi
+	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
+	if [[ $? == 1 ]]; then
+		dialog --cr-wrap --title "$err2" --msgbox "$err5" 0 0
+		exit
+	fi
+	yes | mkfs.ext4 $o7
+	dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
+	if [[ $? == 0 ]]; then
+		swap=yes
+		o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		yes | mkswap $o8
+	fi
+}
+function part_automatic() {
+	dialog --cr-wrap --title "$tit8 $boot_drive" --default-button no --yesno "$lan31" 0 0
+	if [[ $? == 1 ]]; then
+		dialog --cr-wrap --title "$err2" --msgbox "$err9" 0 0
+		exit
+	fi
+	if [[ -d /sys/firmware/efi ]]; then
+		echo "o
+y
+n
+
+
+300M
+ef00
+n
+
+
+5G
+8200
+n
+
+
+
+8300
+w
+y" | gdisk $boot_drive
+		swap=yes
+		if [[ $nvme == true ]]; then
+			yes | mkfs.vfat "$boot_drive"p1
+			e1="$boot_drive"p1
+			yes | mkswap "$boot_drive"p2
+			o8="$boot_drive"p2
+			yes | mkfs.ext4 "$boot_drive"p3
+			o7="$boot_drive"p3
+		else
+			yes | mkfs.vfat "$boot_drive"1
+			e1="$boot_drive"1
+			yes | mkswap "$boot_drive"2
+			o8="$boot_drive"2
+			yes | mkfs.ext4 "$boot_drive"3
+			o7="$boot_drive"3
+		fi
+	else
+		echo "o
+n
+p
+
+
++5G
+t
+82
+n
+p
+
+
+
+a
+2
+w" | fdisk $boot_drive
+		swap=yes
+		if [[ $nvme == true ]]; then
+			yes | mkswap "$boot_drive"p1
+			o8="$boot_drive"p1
+			yes | mkfs.ex4 "$boot_drive"p2
+			o7="$boot_drive"p2
+		else
+			yes | mkswap "$boot_drive"1
+			o8="$boot_drive"1
+			yes | mkfs.ext4 "$boot_drive"2
+			o7="$boot_drive"2
+		fi
 	fi
 }
 if [[ ! -f /usr/bin/dialog ]]; then
@@ -56,6 +185,11 @@ it_IT) keymap=it && layout=it ;;
 es_ES) keymap=es && layout=es ;;
 esac
 loadkeys $keymap
+stype=$(dialog --no-items --cr-wrap --title "$mtit" --menu "$lan27" 13 0 0 Basic Full 2Steps 3>&1 1>&2 2>&3 3>&-)
+if [[ $stype == 2Steps ]]; then
+	2step $slan
+	exit
+fi
 o2=$(dialog --cr-wrap --no-cancel --title "$tit4" --menu "$lan8" 0 0 0 "Africa" "" "America" "" "Antarctica" "" "Arctic" "" "Asia" "" "Atlantic" "" "Australia" "" "Barzil" "" "Canada" "" "Chile" "" "Etc" "" "Europe" "" "Indian" "" "Mexico" "" "Pacific" "" "US" "" 3>&1 1>&2 2>&3 3>&-)
 cd /usr/share/zoneinfo/$o2
 tzone=$(echo *)
@@ -75,57 +209,13 @@ else
 	nvme=false
 fi
 boot_drive=$o6
-if [[ -d /sys/firmware/efi ]]; then
-	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
-else
-	dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
-fi
-umount "$boot_drive"*
-cfdisk $boot_drive
-if [[ $nvme == true ]]; then
-	partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
-	partition=$(echo $partition)
-	if [[ "$partition" == "" ]]; then
-		partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
-		partition=$(echo $partition)
-		if [[ "$partition" == "" ]]; then
-			dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-			exit
-		fi
-	fi
-else
-	partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
-	partition=$(echo $partition)
-	if [[ "$partition" == "" ]]; then
-	        partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
-	        partition=$(echo $partition)
-	        if [[ "$partition" == "" ]]; then
-	                dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-	                exit
-	        fi
-	fi
-fi
-lsblk $o6
-if [[ -d /sys/firmware/efi ]]; then
-	e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-	dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
-	if [[ $? == 0 ]]; then
-		yes | mkfs.vfat $e1
-	fi
-fi
-o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
-if [[ $? == 1 ]]; then
-	dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
-	exit
-fi
-yes | mkfs.ext4 $o7
-
-dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
-if [[ $? == 0 ]]; then
-	swap=yes
-	o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
-	yes | mkswap $o8
+umount $boot_drive*
+swapoff $boot_drive*
+o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
+if [[ $o10 == "$but5b" ]]; then
+	part_automatic
+elif [[ $o10 == "$but6b" ]]; then
+	part_manual
 fi
 rootpw
 user_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan19" 0 0 3>&1 1>&2 2>&3 3>&-)
@@ -143,24 +233,48 @@ if [[ $? == 1 ]]; then
 else
 	cpu=intel-ucode
 fi
-dialog --cr-wrap --title "AUR-Helper" --extra-button --extra-label "Yay" --help-button --help-label "$but2" --yes-label "Paru" --no-label "Chaotic-AUR" --yesno "$lan22" 0 0
-if [[ $? == 0 ]]; then
+o9=$(dialog --nocancel --cr-wrap --no-items --title "AUR-Helper" --no-label "Chaotic-AUR" --menu "$lan22" 0 0 4 "Paru" "Yay" "Chaotic-AUR" "$but2" 3>&1 1>&2 2>&3 3>&-)
+if [[ $o9 == "Paru" ]]; then
 	aur=paru-bin
 	aurh=paru
-elif [[ $? == 3 ]]; then
+elif [[ $o9 == "Yay" ]]; then
 	aur=yay-bin
 	aurh=yay
-elif [[ $? == 2 ]]; then
+elif [[ "$o9" == "$but2" ]]; then
 	aurh=none
-elif [[ $? == 1 ]]; then
+elif [[ $o9 == "Chaotic-AUR" ]]; then
 	aur=chaotic
 	aurh=chaotic
-fi 
+fi
+if [[ $stype == Full ]]; then
+	so1=$(dialog --no-cancel --no-items --title "$tit13" --menu "$lan28" 0 0 0 KDE-Plasma GNOME Xfce4 Cinnamon Deepin Trinity MATE LXQt LXDE 3>&1 1>&2 2>&3 3>&-)
+	if [[ $so1 == "KDE-Plasma" ]]; then
+        	de=kde
+	elif [[ $so1 == "GNOME" ]]; then
+	        de=gnome
+	elif [[ $so1 == "Xfce4" ]]; then
+	        de=xfce
+	elif [[ $so1 == "Cinnamon" ]]; then
+	        de=cinnamon
+	elif [[ $so1 == "Deepin" ]]; then
+	        de=deepin
+	elif [[ $so1 == "Trinity" ]]; then
+	        de=tde
+	elif [[ $so1 == "MATE" ]]; then
+	        de=mate
+	elif [[ $so1 == "LXQt" ]]; then
+	        de=lxqt
+	elif [[ $so1 == "LXDE" ]]; then
+	        de=lxde
+	fi
+fi
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
-mkdir -p /target/boot/efi
-mount "$e1" /target/boot/efi
-pacman --noconfirm -Sy archlinux-keyring
+if [[ -d /sys/firmware/efi ]]; then
+	mkdir -p /target/boot/efi
+	mount "$e1" /target/boot/efi
+fi
+pacman --noconfirm --needed -Sy archlinux-keyring
 
 pacstrap /target base linux linux-firmware git nano $cpu iptables-nft neovim vim
 
@@ -219,7 +333,7 @@ else
 fi
 chmod +x /target/usr/bin/installer
 if [[ ! -f /target/usr/bin/installer ]]; then
-	dialog --title "$err3" --msgbox "$err6" 0 0
+	dialog --cr-wrap --title "$err3" --msgbox "$err6" 0 0
 fi
 if [[ -f /var/setup/sumkpkg ]]; then
 	cp /var/setup/sumkpkg /target/var/setup/sumkpkg
@@ -228,8 +342,21 @@ else
 fi
 chmod +x /target/var/setup/sumkpkg
 if [[ ! -f /target/var/setup/sumkpkg ]]; then
-	dialog --title "$err2" --infobox "$err7" 0 0
+	dialog --cr-wrap --title "$err2" --msgbox "$err7" 0 0
 	exit
+fi
+if [[ ! -f /var/setup/autologin.tmp ]]; then
+	curl -o /var/setup/autologin.tmp https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/autologin.tmp
+fi
+if [[ -f /var/setup/desktopinstall ]]; then
+	cp /var/setup/desktopinstall /target/usr/bin/desktopinstall
+else
+	curl -o /target/usr/bin/desktopinstall https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/installed/destopinstall
+fi
+chmod +x /target/usr/bin/desktopinstall
+if [[ ! -f /target/usr/bin/desktopinstall ]]; then
+	dialog --cr-wrap --title "$err3" --msgbox "$err8" 0 0
+	stype=Basic
 fi
 if [ "$aur" == "paru-bin" ] || [ "$aur" == "yay-bin" ]; then
 	git clone https://aur.archlinux.org/$aur.git /target/tmp_aur
@@ -247,14 +374,20 @@ Include = /etc/pacman.d/chaotic-mirrorlist
 Include = /etc/pacman.d/mirrorlist" >> /target/etc/pacman.conf
 	arch-chroot /target bash -c "pacman --noconfirm --needed -Syy"
 fi
+cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
+cp -rf /var/lib/iwd /target/var/lib/iwd 
 if [[ $1 == --debug ]]; then
 	echo DEBUG -- PAUSE -- PRESS ENTER
 	read
 fi
-dialog --title "$mtit" --yesno "$lan24" 0 0
-if [[ $? == 0 ]]; then
-	umount -a
-	reboot
-else
-	echo -e "$lan25"
+if [[ $stype == Full ]]; then
+	mkdir -p /target/etc/systemd/system/getty@tty1.service.d
+	echo "desktopinstall $de" >> /target/root/.bashrc
+	echo "if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi" > /target/root/.profile
+	cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
 fi
+dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 0 0
+umount -a
+reboot
