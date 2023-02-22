@@ -239,7 +239,11 @@ else
 	cp -r /var/setup/setup /target/usr/bin/setup
 fi
 chmod +x /target/usr/bin/setup
-cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
+if [ -e /etc/iwd/main.conf ]; then
+  cp /etc/iwd/main.conf /target/etc/iwd/main.conf
+else
+  echo "/etc/iwd/main.conf does not exist. Skipped."
+fi
 cp -rf /var/lib/iwd /target/var/lib/iwd
 cp -f /var/setup/lang.conf /target/var/setup/2step.conf
 mkdir -p "/target/etc/systemd/system/getty@tty1.service.d"
