@@ -376,10 +376,6 @@ Include = /etc/pacman.d/mirrorlist" >> /target/etc/pacman.conf
 fi
 cp -f /etc/iwd/main.conf /target/etc/iwd/main.conf
 cp -rf /var/lib/iwd /target/var/lib/iwd 
-if [[ $1 == --debug ]]; then
-	echo DEBUG -- PAUSE -- PRESS ENTER
-	read
-fi
 if [[ $stype == Full ]]; then
 	mkdir -p /target/etc/systemd/system/getty@tty1.service.d
 	echo "desktopinstall $de" >> /target/root/.bashrc
@@ -387,6 +383,10 @@ if [[ $stype == Full ]]; then
 	. ~/.bashrc
 fi" > /target/root/.profile
 	cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
+fi
+if [[ $1 == --debug ]]; then
+	echo DEBUG -- PAUSE -- PRESS ENTER
+	read
 fi
 dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 0 0
 umount -a
