@@ -221,7 +221,7 @@ rootpw
 user_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan19" 0 0 3>&1 1>&2 2>&3 3>&-)
 full_name=$(dialog --cr-wrap --no-cancel --title "$tit10" --inputbox "$lan26" 0 0 3>&1 1>&2 2>&3 3>&-)
 userpw
-dialog --cr-wrap --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 0 0
+#dialog --cr-wrap --title "$tit11" --no-label AMD --yes-label Nvidia --yesno "$lan20" 0 0
 
 if grep -q "GenuineIntel" /proc/cpuinfo; then
 	cpu=intel-ucode
