@@ -240,7 +240,7 @@ fi
 pci=$(lspci)
 if echo "$pci" | grep -i amd > /dev/null; then
 	gpu="xf86-video-amdgpu mesa"
-	echo "AMD Graphics Card detected" 
+	echo "AMD Device detected" 
 fi
 if echo "$pci" | grep -i nvidia > /dev/null; then
 	gpu="nvidia nvidia-utils nvidia-settings"
@@ -248,11 +248,11 @@ if echo "$pci" | grep -i nvidia > /dev/null; then
 fi
 if echo "$pci" | grep -i virtualbox > /dev/null || echo "$pci" | grep -i vmware > /dev/null; then
 	gpu="virtualbox-guest-utils open-vm-tools"
-	echo "VMware or Virtualbox Emulated Graphics Card detected"
+	echo "VMware or Virtualbox Hypervisor detected"
 fi
 if echo "$pci" | grep -i intel > /dev/null; then
 	gpu="xf86-video-intel mesa"
-	echo "Intel Integrated Graphics Card detected"
+	echo "Intel Device detected"
 fi
 o9=$(dialog --nocancel --cr-wrap --no-items --title "AUR-Helper" --no-label "Chaotic-AUR" --menu "$lan22" 0 0 4 "Paru" "Yay" "Chaotic-AUR" "$but2" 3>&1 1>&2 2>&3 3>&-)
 if [[ $o9 == "Paru" ]]; then
