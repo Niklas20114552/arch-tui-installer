@@ -34,13 +34,13 @@ function part_manual() {
 	fi
 	lsblk $o6
 	if [[ -d /sys/firmware/efi ]]; then
-		e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 		dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
 		if [[ $? == 0 ]]; then
 		yes | mkfs.vfat $e1
 		fi
 	fi
-	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 	dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
 	if [[ $? == 1 ]]; then
 		dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
@@ -51,7 +51,7 @@ function part_manual() {
 	dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
 	if [[ $? == 0 ]]; then
 		swap=yes
-		o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 		yes | mkswap $o8
 	fi
 }
