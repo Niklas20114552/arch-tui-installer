@@ -340,7 +340,10 @@ if [[ ! -f /var/setup/bashrc ]]; then
 	curl -o /var/setup/bashrc https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/bashrc
 fi
 cp /var/setup/bashrc /target/etc/skel/.bashrc
-cp /var/setup/bashrc /targer/root/.bashrc
+cp /var/setup/bashrc /target/root/.bashrc
+echo "if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi" > /target/root/.profile
 arch-chroot /target bash -c "useradd -mG wheel $user_name"
 echo "echo '$user_name:$user_pass' | chpasswd" >> /target/chpasswd.sh
 arch-chroot /target bash /chpasswd.sh
@@ -409,9 +412,6 @@ cp -rf /var/lib/iwd /target/var/lib/iwd
 if [[ $stype == Full ]]; then
 	mkdir -p /target/etc/systemd/system/getty@tty1.service.d
 	echo "desktopinstall $de" >> /target/root/.bashrc
-	echo "if [ -f ~/.bashrc ]; then
-	. ~/.bashrc
-fi" > /target/root/.profile
 	cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
 fi
 if [[ $1 == --debug ]]; then

@@ -22,7 +22,6 @@ function userpw() {
         fi
 }
 rm -rf /etc/systemd/system/getty@tty1.service.d
-rm /root/.profile
 sed -i '/^setup/d' /root/.bashrc
 o4=$(dialog --cr-wrap --no-cancel --title "Language" --menu "Please choose your language." 0 0 0 "de_DE.UTF-8" "Deutsch" "en_US.UTF-8" "English (US)" "fr_FR.UTF-8" "Français" "nl_NL.UTF-8" "Nederlands" "it_IT.UTF-8" "Italiano" "es_ES.UTF-8" "Español" 3>&1 1>&2 2>&3 3>&-)
 case $o4 in
