@@ -238,12 +238,26 @@ else
 	fi
 fi
 pci=$(lspci)
+dialog --cr-wrap --title "$tit14" --yes-label "Opensource" --no-label "Proprietary" --yesno "$lan32" 0 0 
+if [[ $? == 0 ]]; then
+	drsrc="open"
+elif [[ $? == 1 ]]; then
+	drsrc="pro"
+else
+	drsrc="open"
+fi
 if echo "$pci" | grep -i amd > /dev/null; then
-	gpu="xf86-video-amdgpu mesa"
+	case $drsrc in
+		pro) gpu="xf86-video-amdgpu mesa" ;;
+		open) gpu="xf86-video-ati mesa" ;;
+	esac
 	echo "AMD Device detected" 
 fi
 if echo "$pci" | grep -i nvidia > /dev/null; then
-	gpu="nvidia nvidia-utils nvidia-settings"
+	case $drsrc in
+		pro) gpu="nvidia nvidia-utils nvidia-settings" ;;
+		open) gpu="xf86-video-nouveau mesa" ;;
+	esac
 	echo "NVIDIA Graphics Card detected"
 fi
 if echo "$pci" | grep -i virtualbox > /dev/null || echo "$pci" | grep -i vmware > /dev/null; then
@@ -251,7 +265,10 @@ if echo "$pci" | grep -i virtualbox > /dev/null || echo "$pci" | grep -i vmware 
 	echo "VMware or Virtualbox Hypervisor detected"
 fi
 if echo "$pci" | grep -i intel > /dev/null; then
-	gpu="xf86-video-intel mesa"
+	case $drsrc in
+		pro) gpu="xf86-video-intel mesa" ;;
+		open) gpu="mesa" ;;
+	esac
 	echo "Intel Device detected"
 fi
 o9=$(dialog --nocancel --cr-wrap --no-items --title "AUR-Helper" --no-label "Chaotic-AUR" --menu "$lan22" 0 0 4 "Paru" "Yay" "Chaotic-AUR" "$but2" 3>&1 1>&2 2>&3 3>&-)
