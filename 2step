@@ -293,6 +293,10 @@ cp -f /var/setup/lang.conf /target/var/setup/2step.conf
 mkdir -p "/target/etc/systemd/system/getty@tty1.service.d"
 echo "setup" >> /target/root/.bashrc
 cp /var/setup/autologin.tmp /target/etc/systemd/system/getty@tty1.service.d/autologin.conf
-dialog --title "$mtit" --ok-label "$but4" --timeout 10 --msgbox "$lan24" 0 0
-umount -a
-reboot
+dialog --title "$mtit" --ok-label "$but4" --pause "$lan24" 8 50 10
+if [[ $? != 1 ]]; then
+	umount -a
+	reboot
+else
+	exit
+fi
