@@ -118,7 +118,7 @@ w" | fdisk $boot_drive
 		if [[ $nvme == true ]]; then
 			yes | mkswap "$boot_drive"p1
 			o8="$boot_drive"p1
-			yes | mkfs.ex4 "$boot_drive"p2
+			yes | mkfs.ext4 "$boot_drive"p2
 			o7="$boot_drive"p2
 		else
 			yes | mkswap "$boot_drive"1
