@@ -333,7 +333,7 @@ fi
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
 if [[ $fs == btrfs ]]; then
-	(cd /target && btrfs subvolume create @home && btrfs subvolume create @var && btrfs subvolume create @snapshots)
+	(cd /target && btrfs subvolume create @ && btrfs subvolume create @home && btrfs subvolume create @var && btrfs subvolume create @snapshots)
 	umount /target
 	mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@ $o7 /target
 	mkdir -p /target/{home,var,.snapshots}
