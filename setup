@@ -234,6 +234,7 @@ else
 fi
 boot_drive=$o6
 umount $boot_drive*
+umount /target
 swapoff $boot_drive*
 o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
 if [[ $o10 == "$but5b" ]]; then
