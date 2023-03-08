@@ -63,7 +63,7 @@ function part_manual() {
 	fi
 	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 	fs=$(dialog --cr-wrap --no-items --no-cancel --title "$tit7b" --menu "$lan33" 0 0 0 btrfs ext4 3>&1 1>&2 2>&3 3>&-)
-	case in $fs
+	case $fs in
 		btrfs) extp="grub-btrfs" ;;
 	esac
 	dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
@@ -85,7 +85,7 @@ function part_manual() {
 }
 function part_automatic() {
 	fs=$(dialog --cr-wrap --no-items --no-cancel --title "$tit7b" --menu "$lan33" 0 0 0 btrfs ext4 3>&1 1>&2 2>&3 3>&-)
-	case in $fs
+	case $fs in
         	btrfs) extp="grub-btrfs" ;;
 	esac
 	dialog --cr-wrap --title "$tit8 $boot_drive" --default-button no --yesno "$lan31" 0 0
