@@ -236,7 +236,7 @@ mkdir -p /target/var/setup
 if [[ ! -f /var/setup/bashrc ]]; then
 	curl -o /var/setup/bashrc https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/bashrc
 cp /var/setup/bashrc /target/etc/skel/.bashrc
-cp /var/setup/bashrc /target/root/.bashrc
+cp /var/setup/bashrc.root /target/root/.bashrc
 echo "if [ -f ~/.bashrc ]; then
 	. ~/.bashrc
 fi" > /target/root/.profile
