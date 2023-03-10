@@ -224,6 +224,15 @@ if echo "$pci" | grep -i intel > /dev/null; then
 fi
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
+if [[ $fs == btrfs ]]; then
+        (cd /target && btrfs subvolume create @ && btrfs subvolume create @home && btrfs subvolume create @var && btrfs subvolume create @snapshots)
+        umount /target
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@ $o7 /target
+        mkdir -p /target/{home,var,.snapshots}
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $o7 /target/home
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@var $o7 /target/var
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@snapshots $o7 /target/.snapshots
+fi
 if [[ -d /sys/firmware/efi ]]; then
 	mkdir -p /target/boot/efi
 	mount "$e1" /target/boot/efi
@@ -237,15 +246,6 @@ if [[ $swap == yes ]]; then
 fi
 
 genfstab -U /target >> /target/etc/fstab
-if [[ $fs == btrfs ]]; then
-        (cd /target && btrfs subvolume create @ && btrfs subvolume create @home && btrfs subvolume create @var && btrfs subvolume create @snapshots)
-        umount /target
-        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@ $o7 /target
-        mkdir -p /target/{home,var,.snapshots}
-        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $o7 /target/home
-        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@var $o7 /target/var
-        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@snapshots $o7 /target/.snapshots
-fi
 if [[ -d /sys/firmware/efi ]]; then
 	grub="grub efibootmgr"
 else
