@@ -71,11 +71,10 @@ function part_manual() {
 		dialog --cr-wrap --title "$err2" --msgbox "$err5" 0 0
 		exit
 	fi
-	if [[ $fs == ext4 ]]; then
-		yes | mkfs.ext4 $o7
-	elif [[ $fs == btrfs ]]; then
-		mkfs.btrfs --force $o7
-	fi
+	case $fs in
+		ext4) yes | mkfs.ext4 $o7 ;;
+		btrfs) mkfs.btrfs --force $o7 ;;
+	esac
 	dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
 	if [[ $? == 0 ]]; then
 		swap=yes

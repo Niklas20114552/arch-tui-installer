@@ -41,13 +41,19 @@ function part_manual() {
 		fi
 	fi
 	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	fs=$(dialog --cr-wrap --no-items --no-cancel --title "$tit7b" --menu "$lan33" 0 0 0 btrfs ext4 3>&1 1>&2 2>&3 3>&-)
+	case $fs in
+		btrfs) extp="grub-btrfs"
+	esac
 	dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
 	if [[ $? == 1 ]]; then
 		dialog --cr-wrap --title "$err3" --msgbox "$err5" 0 0
 		exit
 	fi
-	yes | mkfs.ext4 $o7
-	
+	case $fs in
+		ext4) yes | mkfs.ext4 $o7 ;;
+		btrfs) mkfs.btrfs --force $o7 ;;
+	esac
 	dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
 	if [[ $? == 0 ]]; then
 		swap=yes
@@ -87,14 +93,20 @@ y" | gdisk $boot_drive
 			e1="$boot_drive"p1
 			yes | mkswap "$boot_drive"p2
 			o8="$boot_drive"p2
-			yes | mkfs.ext4 "$boot_drive"p3
+			case $fs in
+				ext4) yes | mkfs.ext4 "$boot_drive"p3 ;;
+				btrfs) mkfs.btrfs --force "$boot_drive"p3 ;;
+			esac
 			o7="$boot_drive"p3
 		else
 			yes | mkfs.vfat "$boot_drive"1
 			e1="$boot_drive"1
 			yes | mkswap "$boot_drive"2
 			o8="$boot_drive"2
-			yes | mkfs.ext4 "$boot_drive"3
+			case $fs in
+				ext4) yes | mkfs.ext4 "$boot_drive"3 ;;
+				btrfs) mkfs.btrfs --force "$boot_drive"3 ;;
+			esac
 			o7="$boot_drive"3
 		fi
 	else
@@ -118,12 +130,18 @@ w" | fdisk $boot_drive
 		if [[ $nvme == true ]]; then
 			yes | mkswap "$boot_drive"p1
 			o8="$boot_drive"p1
-			yes | mkfs.ext4 "$boot_drive"p2
+			case $fs in
+				ext4) yes | mkfs.ext4 "$boot_drive"p2 ;;
+				btrfs) mkfs.btrfs --force "$boot_drive"p2 ;;
+			esac
 			o7="$boot_drive"p2
 		else
 			yes | mkswap "$boot_drive"1
 			o8="$boot_drive"1
-			yes | mkfs.ext4 "$boot_drive"2
+			case $fs in
+				ext4) yes | mkfs.ext4 "$boot_drive"2 ;;
+				btrfs) mkfs.btrfs --force "$boot_drive"2 ;;
+			esac
 			o7="$boot_drive"2
 		fi
 	fi
@@ -215,6 +233,15 @@ if [[ $swap == yes ]]; then
 fi
 
 genfstab -U /target >> /target/etc/fstab
+if [[ $fs == btrfs ]]; then
+        (cd /target && btrfs subvolume create @ && btrfs subvolume create @home && btrfs subvolume create @var && btrfs subvolume create @snapshots)
+        umount /target
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@ $o7 /target
+        mkdir -p /target/{home,var,.snapshots}
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $o7 /target/home
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@var $o7 /target/var
+        mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@snapshots $o7 /target/.snapshots
+fi
 if [[ -d /sys/firmware/efi ]]; then
 	grub="grub efibootmgr"
 else
