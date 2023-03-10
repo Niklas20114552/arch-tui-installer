@@ -389,6 +389,9 @@ arch-chroot /target bash -c "systemctl enable NetworkManager bluetooth cups.serv
 if [[ ! -f /var/setup/bashrc ]]; then
 	curl -o /var/setup/bashrc https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/bashrc
 fi
+if [[ ! -f /var/setup/bashrc.root ]]; then
+	curl -o /var/setup/bashrc.root https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/bashrc.root
+fi
 cp /var/setup/bashrc /target/etc/skel/.bashrc
 cp /var/setup/bashrc.root /target/root/.bashrc
 echo "if [ -f ~/.bashrc ]; then
