@@ -5,6 +5,7 @@ dialog --title "Updater" --extra-button --extra-label "Quit" --msgbox "The Updat
 if [[ $? == 3 ]]; then
 	exit
 fi
+mkdir -p /var/setup
 if [[ ! -d /var/setup/git ]]; then
 	git clone https://github.com/Niklas20114552/arch-tui-installer /var/setup/git | dialog --title "Updating..." --infobox "Git-Repository is beeing updated..." 3 45
 fi
