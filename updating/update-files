@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+# UPDATER SCRIPT - This Script updates all Files in the Git Repository
+#                  Location of Git Repository: /var/setup/git (folder)
+function upfile() {
+	dialog --title "Updating..." --infobox "Copying File...\n\n$*" 5 45
+}
+function chmodfile() {
+	dialog --title "Updating..." --infobox "Updating File... \n\nCHMOD +x\n\n$*" 7 45
+}
+cp /var/setup/git/setup /usr/local/bin/setup | upfile "/setup"
+cp /var/setup/git/2step /usr/local/bin/2step | upfile "/2step"
+cp /var/setup/git/lang.conf /var/setup/lang.conf | upfile "/lang.conf"
+cp /var/setup/git/bashrc /var/setup/bashrc | upfile "/bashrc"
+cp /var/setup/git/bashrc.root /var/setup/bashrc.root | upfile "/bashrc.root"
+cp /var/setup/git/autologin.tmp /var/setup/autologin.tmp | upfile "/autologin.tmp"
+cp /var/setup/git/sumkpkg /var/setup/sumkpkg | upfile "/sumkpkg"
+cp /var/setup/git/updater /var/setup/updater | upfile "/updater"
+
+cp /var/setup/git/installed/desktopinstall /var/setup/desktopinstall | upfile "/installed/desktopinstall"
+cp /var/setup/git/installed/installer /var/setup/installer | upfile "/installed/installer"
+cp /var/setup/git/installed/setup /var/setup/setup | upfile "/installed/setup"
+cp /var/setup/git/installed/lang.conf /var/setup/installed.conf | upfile "/installed/lang.conf"
+
+chmod +x /usr/local/bin/setup | chmodfile "/setup"
+chmod +x /usr/local/bin/2step | chmodfile "/2step"
+
+dialog --infobox "Updating finished"
