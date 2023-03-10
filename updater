@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+# SCRIPT - Updates all Files
+#          Will be started as an alias for setup
+dialog --title "Updater" --extra-button --extra-label "Quit" --msgbox "The Updater will update the Setup to be up to date.\nTo do that, you must be connected to the internet.\nPlease make sure you are connected to the internet." 0 0
+if [[ $? == 3 ]]; then
+	exit
+fi
+mkdir -p /var/setup
+if [[ ! -d /var/setup/git ]]; then
+	git clone https://github.com/Niklas20114552/arch-tui-installer /var/setup/git | dialog --title "Updating..." --infobox "Git-Repository is beeing updated..." 3 45
+fi
+(cd /var/setup/git && git pull > /dev/null | dialog --title "Updating..." --infobox "Git-Repository is beeing updated..." 3 45)
+/var/setup/git/updating/update-files
+setup

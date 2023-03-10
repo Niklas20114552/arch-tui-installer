@@ -33,9 +33,9 @@ Download the [Archlinux ISO](https://archlinux.org/download/)
 In Terminal type this:
 ```bash
 pacman --needed --noconfirm -Sy dialog git
-curl -O https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/setup
-chmod +x setup
-./setup
+curl -O https://raw.githubusercontent.com/Niklas20114552/arch-tui-installer/main/updater
+chmod +x updater
+./updater
 ```
 
 ## I found an Issue!
@@ -44,6 +44,6 @@ Thank you! Please enable the debug-mode:
 
 Normal installation: Run setup with `setup --debug`
 
-Manual installation: Run setup with `./setup --debug`
+Manual installation: Run setup with `setup --debug`, after you have started the Updater
 
 Than look for error-messages and write it down. Please report the error in the [Issue](https://github.com/Niklas20114552/arch-tui-installer/issues)-Tab. But first check if it has already been reported

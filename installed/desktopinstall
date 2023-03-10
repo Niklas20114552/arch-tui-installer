@@ -13,7 +13,6 @@ function iaur() {
         fi
 }
 rm -rf /etc/systemd/system/getty@tty1.service.d
-rm /root/.profile
 sed -i '/^desktopinstall/d' /root/.bashrc 
 lan="$(cat /etc/locale.gen)"
 source /var/setup/setup.conf
@@ -91,5 +90,5 @@ elif [[ $de == lxde ]]; then
         sed -i '/^#greeter-session=/c\greeter-session=lightdm-slick-greeter' /etc/lightdm/lightdm.conf
         systemctl enable lightdm
 fi
-dialog --title "Installer" --ok-label "$but3" --timeout 10 --msgbox "$lan5" 0 0
+dialog --title "Installer" --ok-label "$but3" --pause "$lan5" 8 50 10
 reboot
