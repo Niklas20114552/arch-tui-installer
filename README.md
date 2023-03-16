@@ -4,6 +4,10 @@ Arch-TUI-Installer is an Installer for [Archlinux](https://archlinux.org).
 
 It's based on the [Arch Basic Install](https://gitlab.com/sontypiminternet/arch-basic)-Repository on GitLab.
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Niklas20114552/arch-tui-installer?display_name=tag&label=Release&style=flat-square)
+[![Website](https://img.shields.io/static/v1?label=Website&message=click&color=blue)](https://arch-tui-installer.github.io)
+[![Isomaker](https://img.shields.io/static/v1?label=Isomaker&message=click&color=blue)](https://github.com/arch-tui-installer/arch-tui-installer-isomaker)
+
 # I need your help!
 
 You can download both ```lang.conf``` (there is also one in the ```installed``` folder) files and make a translation.
@@ -47,3 +51,5 @@ Normal installation: Run setup with `setup --debug`
 Manual installation: Run setup with `setup --debug`, after you have started the Updater
 
 Than look for error-messages and write it down. Please report the error in the [Issue](https://github.com/Niklas20114552/arch-tui-installer/issues)-Tab. But first check if it has already been reported
+
+## Other Links
