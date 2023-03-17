@@ -23,34 +23,54 @@ function userpw() {
 		userpw
 	fi
 }
+function part_cfdisk() {
+	umount $ndrive*
+	cfdisk $ndrive
+	if [[ $extparted = *"multiple-drives"* ]]; then
+		x1=$(dialog --no-cancel --title "$tit7b" --menu "Please choose what to do next" 0 0 0 partition "Partition another drive" continue "Continue with the setup" 3>&1 1>&2 2>&3 3>&-)
+		if [[ $x1 == partition ]]; then
+			ndrive=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit6" --menu "$lan10 \n\n$(lsblk --output NAME,MODEL,PARTTYPENAME,SIZE /dev/{vd*[!0-9],sd*[!0-9],hd*[!0-9],nvme0n[0-9]})" 0 0 0 $drives 3>&1 1>&2 2>&3 3>&-)
+			part_cfdisk
+		fi
+	fi
+	# Mehere Laufwerke partitionieren funktioniert soweit: Nur die auswahl noch machen.
+	# separate Partitionieren noch machen
+}
 function part_manual() {
+	extparted=$(dialog --nocancel --title "Advanced Settings" --checklist "Please choose your wanted settings" 0 0 0 "multiple-drives" "Use more than one Drive for the installation" off "separate-home" "Use separate Homepartition" off 3>&1 1>&2 2>&3 3>&-)
 	if [[ -d /sys/firmware/efi ]]; then
 		dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
 	else
 		dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan12" 0 0
 	fi
-	cfdisk $boot_drive
-	if [[ $nvme == true ]]; then
-		partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
-		partition=$(echo $partition)
-		if [[ "$partition" == "" ]]; then
-			partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
+	ndrive=$boot_drive
+	part_cfdisk
+	if [[ $extparted = *"multiple-drives"* ]]; then
+		partition=$(find /dev/sd* -name '*[0-9]'; find /dev/nvme* -name '*p[0-9]'; find /dev/hd* -name '*[0-9]'; find /dev/vd* -name "*[0-9]")
+		partition=$(echo $partition | tr "\n" " ")
+	else
+		if [[ $nvme == true ]]; then
+			partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
 			partition=$(echo $partition)
 			if [[ "$partition" == "" ]]; then
-				dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-				exit
+				partition=$(find "$boot_drive"* -name '*p[0-9]' | tr "\n" " ")
+				partition=$(echo $partition)
+				if [[ "$partition" == "" ]]; then
+					dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+					exit
+				fi
 			fi
-		fi
-	else
-		partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
-		partition=$(echo $partition)
-		if [[ "$partition" == "" ]]; then
-		        partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
-		        partition=$(echo $partition)
-		        if [[ "$partition" == "" ]]; then
-		                dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
-		                exit
-		        fi
+		else
+			partition=$(find $boot_drive* -name '*[0-9]' | tr "\n" " ")
+			partition=$(echo $partition)
+			if [[ "$partition" == "" ]]; then
+				partition=$(find "$boot_drive"* -name '*[0-9]' | tr "\n" " ")
+				partition=$(echo $partition)
+				if [[ "$partition" == "" ]]; then
+					dialog --cr-wrap --title "$err2" --msgbox "$err4a $boot_drive $err4b" 0 0
+					exit
+				fi
+			fi
 		fi
 	fi
 	lsblk $o6
@@ -233,7 +253,7 @@ else
 fi
 boot_drive=$o6
 umount $boot_drive*
-umount /target
+umount -R /target
 swapoff $boot_drive*
 o10=$(dialog --title "$tit7b" --menu "$lan30" 0 0 0 "$but5b" "$but5" "$but6b" "$but6" 3>&1 1>&2 2>&3 3>&-)
 if [[ $o10 == "$but5b" ]]; then
@@ -357,8 +377,7 @@ genfstab -U /target >> /target/etc/fstab
 
 ln -sf $timezone /target/etc/localtime
 mkdir -p /target/var/setup
-arch-chroot bash -c "hwclock --systohc"
-arch-chroot bash -c "timedatectl set-ntp true"
+arch-chroot /target bash -c "timedatectl set-ntp true"
 echo "$locale" > /target/etc/locale.gen
 arch-chroot /target bash -c "locale-gen"
 echo "LANG=$local" > /target/etc/locale.conf
