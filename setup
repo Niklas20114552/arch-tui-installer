@@ -27,7 +27,7 @@ function part_cfdisk() {
 	umount $ndrive*
 	cfdisk $ndrive
 	if [[ $extparted = *"multiple-drives"* ]]; then
-		x1=$(dialog --no-cancel --title "$tit7b" --menu "Please choose what to do next" 0 0 0 partition "Partition another drive" continue "Continue with the setup" 3>&1 1>&2 2>&3 3>&-)
+		x1=$(dialog --no-cancel --title "$tit7b" --menu "$lan35" 0 0 0 partition "$but8" continue "$but9" 3>&1 1>&2 2>&3 3>&-)
 		if [[ $x1 == partition ]]; then
 			ndrive=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit6" --menu "$lan10 \n\n$(lsblk --output NAME,MODEL,PARTTYPENAME,SIZE /dev/{vd*[!0-9],sd*[!0-9],hd*[!0-9],nvme0n[0-9]})" 0 0 0 $drives 3>&1 1>&2 2>&3 3>&-)
 			part_cfdisk
@@ -37,7 +37,7 @@ function part_cfdisk() {
 	# separate Partitionieren noch machen
 }
 function part_manual() {
-	extparted=$(dialog --nocancel --title "Advanced Settings" --checklist "Please choose your wanted settings" 0 0 0 "multiple-drives" "Use more than one Drive for the installation" off "separate-home" "Use separate Homepartition" off 3>&1 1>&2 2>&3 3>&-)
+	extparted=$(dialog --nocancel --title "$tit15" --checklist "$lan36" 0 0 0 "multiple-drives" "$lan37" off "separate-home" "$lan38" off 3>&1 1>&2 2>&3 3>&-)
 	if [[ -d /sys/firmware/efi ]]; then
 		dialog --cr-wrap --title "$tit7a $boot_drive" --msgbox "$lan11" 0 0
 	else
@@ -48,7 +48,9 @@ function part_manual() {
 	if [[ $extparted = *"multiple-drives"* ]]; then
 		partition=$(find /dev/sd* -name '*[0-9]'; find /dev/nvme* -name '*p[0-9]'; find /dev/hd* -name '*[0-9]'; find /dev/vd* -name "*[0-9]")
 		partition=$(echo $partition | tr "\n" " ")
+		partlsblk=$(lsblk {/dev/sd*,/dev/hd*,/dev/nvme*} --output NAME,PARTTYPENAME,FSTYPE,SIZE)
 	else
+		partlsblk=$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)
 		if [[ $nvme == true ]]; then
 			partition=$(find $boot_drive* -name '*p[0-9]' | tr "\n" " ")
 			partition=$(echo $partition)
@@ -75,16 +77,16 @@ function part_manual() {
 	fi
 	lsblk $o6
 	if [[ -d /sys/firmware/efi ]]; then
-		e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$partlsblk" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 		dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
 		if [[ $? == 0 ]]; then
 			yes | mkfs.vfat $e1
 		fi
 	fi
-	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+	o7=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan17 \n\n$partlsblk" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 	fs=$(dialog --cr-wrap --no-items --no-cancel --title "$tit7b" --menu "$lan33" 0 0 0 btrfs ext4 3>&1 1>&2 2>&3 3>&-)
 	case $fs in
-		btrfs) extp="grub-btrfs" ;;
+		btrfs) extp="grub-btrfs btrfs-progs" ;;
 	esac
 	dialog --cr-wrap --title "$tit8 $o7" --default-button no --yesno "$lan18" 0 0
 	if [[ $? == 1 ]]; then
@@ -95,7 +97,23 @@ function part_manual() {
 		ext4) yes | mkfs.ext4 $o7 ;;
 		btrfs) mkfs.btrfs --force $o7 ;;
 	esac
-	dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
+	if [[ $extparted = *"separate-home"* ]]; then
+		x2=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan34 \n\n$partlsblk" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		x2fs=$(dialog --cr-wrap --no-items --no-cancel --title "$tit7b" --menu "$lan33" 0 0 0 btrfs ext4 3>&1 1>&2 2>&3 3>&-)
+		case $x2fs in
+			btrfs) extp="grub-btrfs btrfs-progs" ;;
+		esac
+		dialog --cr-wrap --title "$tit8 $x2" --default-button no --yesno "$lan18" 0 0
+		if [[ $? == 1 ]]; then
+			dialog --cr-wrap --title "$err2" --msgbox "$err5" 0 0
+			exit
+		fi
+		case $x2fs in
+			ext4) yes | mkfs.ext4 $x2 ;;
+			btrfs) mkfs.btrfs --force $x2 ;;
+		esac
+		dialog --cr-wrap --title "$tit9" --yesno "$lan15" 0 0
+	fi
 	if [[ $? == 0 ]]; then
 		swap=yes
 		o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
@@ -353,13 +371,28 @@ fi
 dialog --cr-wrap --title "$mtit" --msgbox "$lan23" 0 0
 mount "$o7" /target
 if [[ $fs == btrfs ]]; then
-	(cd /target && btrfs subvolume create @ && btrfs subvolume create @home && btrfs subvolume create @var && btrfs subvolume create @snapshots)
+	btrfs subvolume create /target/@
+	if [[ $extparted != *"separate-home"* ]]; then
+		btrfs subvolume create /target/@home
+	fi
+	btrfs subvolume create /target/@var
+	btrfs subvolume create /target/@snapshots
 	umount /target
 	mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@ $o7 /target
 	mkdir -p /target/{home,var,.snapshots}
-	mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $o7 /target/home
+	if [[ $extparted != *"separate-home"* ]]; then
+		mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $o7 /target/home
+	fi
 	mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@var $o7 /target/var
 	mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@snapshots $o7 /target/.snapshots
+fi
+if [[ $extparted = *"separate-home"* ]]; then
+	mkdir -p /target/home
+	mount "$x2" /target/home
+	if [[ $x2fs == btrfs ]]; then
+		btrfs subvolume create /target/home/@home
+		umount /target/home
+		mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $x2 /target/home
 fi
 if [[ -d /sys/firmware/efi ]]; then
 	mkdir -p /target/boot/efi
