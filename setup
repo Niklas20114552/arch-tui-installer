@@ -45,6 +45,8 @@ function part_manual() {
 	fi
 	ndrive=$boot_drive
 	part_cfdisk
+	# Just to fix some problems with lsblk
+	lsblk $o6
 	if [[ $extparted = *"multiple-drives"* ]]; then
 		partition=$(find /dev/sd* -name '*[0-9]'; find /dev/nvme* -name '*p[0-9]'; find /dev/hd* -name '*[0-9]'; find /dev/vd* -name "*[0-9]")
 		partition=$(echo $partition | tr "\n" " ")
@@ -75,7 +77,6 @@ function part_manual() {
 			fi
 		fi
 	fi
-	lsblk $o6
 	if [[ -d /sys/firmware/efi ]]; then
 		e1=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan13 \n\n$partlsblk" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 		dialog --cr-wrap --title "$tit8 $e1" --yesno "$lan14" 0 0
