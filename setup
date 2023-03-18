@@ -394,6 +394,7 @@ if [[ $extparted = *"separate-home"* ]]; then
 		btrfs subvolume create /target/home/@home
 		umount /target/home
 		mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $x2 /target/home
+	fi
 fi
 if [[ -d /sys/firmware/efi ]]; then
 	mkdir -p /target/boot/efi
