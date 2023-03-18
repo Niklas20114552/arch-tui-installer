@@ -46,7 +46,7 @@ function part_manual() {
 	ndrive=$boot_drive
 	part_cfdisk
 	# Just to fix some problems with lsblk
-	lsblk $o6
+	lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)
 	if [[ $extparted = *"multiple-drives"* ]]; then
 		partition=$(find /dev/sd* -name '*[0-9]'; find /dev/nvme* -name '*p[0-9]'; find /dev/hd* -name '*[0-9]'; find /dev/vd* -name "*[0-9]")
 		partition=$(echo $partition | tr "\n" " ")
@@ -117,7 +117,7 @@ function part_manual() {
 	fi
 	if [[ $? == 0 ]]; then
 		swap=yes
-		o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
+		o8=$(dialog --cr-wrap --no-collapse --no-cancel --no-items --title "$tit7b" --menu "$lan16 \n\n$partlsblk" 0 0 0 $partition 3>&1 1>&2 2>&3 3>&-)
 		yes | mkswap $o8
 	fi
 }
