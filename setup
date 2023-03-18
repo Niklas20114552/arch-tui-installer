@@ -46,7 +46,7 @@ function part_manual() {
 	ndrive=$boot_drive
 	part_cfdisk
 	# Just to fix some problems with lsblk
-	lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)
+	lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE
 	if [[ $extparted = *"multiple-drives"* ]]; then
 		partition=$(find /dev/sd* -name '*[0-9]'; find /dev/nvme* -name '*p[0-9]'; find /dev/hd* -name '*[0-9]'; find /dev/vd* -name "*[0-9]")
 		partition=$(echo $partition | tr "\n" " ")
