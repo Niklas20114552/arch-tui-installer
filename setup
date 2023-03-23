@@ -33,8 +33,6 @@ function part_cfdisk() {
 			part_cfdisk
 		fi
 	fi
-	# Mehere Laufwerke partitionieren funktioniert soweit: Nur die auswahl noch machen.
-	# separate Partitionieren noch machen
 }
 function part_manual() {
 	extparted=$(dialog --nocancel --title "$tit15" --checklist "$lan36" 0 0 0 "multiple-drives" "$lan37" off "separate-home" "$lan38" off 3>&1 1>&2 2>&3 3>&-)
