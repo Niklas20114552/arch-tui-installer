@@ -25,3 +25,4 @@ chmod +x /usr/local/bin/setup | chmodfile "/setup"
 chmod +x /usr/local/bin/2step | chmodfile "/2step"
 
 dialog --infobox "Updating finished" 3 45
+sleep 1s
