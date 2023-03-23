@@ -48,7 +48,7 @@ function part_manual() {
 	if [[ $extparted = *"multiple-drives"* ]]; then
 		partition=$(find /dev/sd* -name '*[0-9]'; find /dev/nvme* -name '*p[0-9]'; find /dev/hd* -name '*[0-9]'; find /dev/vd* -name "*[0-9]")
 		partition=$(echo $partition | tr "\n" " ")
-		partlsblk=$(lsblk {/dev/sd*,/dev/hd*,/dev/nvme*,/dev/vd*} --output NAME,PARTTYPENAME,FSTYPE,SIZE)
+		partlsblk=$(lsblk {/dev/sd*[!0-9],/dev/hd*[!0-9],/dev/nvme*[!0-9],/dev/vd*[!0-9]} --output NAME,PARTTYPENAME,FSTYPE,SIZE)
 	else
 		partlsblk=$(lsblk $o6 --output NAME,PARTTYPENAME,FSTYPE,SIZE)
 		if [[ $nvme == true ]]; then
