@@ -29,4 +29,6 @@ fi
 /var/setup/git/updating/update-files
 if [[ $* = *"--debug"* ]]; then
 	setup --debug
+else
+	setup
 fi
