@@ -1,6 +1,21 @@
 #!/usr/bin/bash
 # SCRIPT - Updates all Files
 #          Will be started as an alias for setup
+if [[ $* = *"--skip-update"* ]]; then
+	if [[ $* = *"--debug"* ]]; then
+		setup --debug
+	else
+		setup
+	fi
+	exit
+elif [[ $* = *"--help"* ]]; then
+	echo "Setup for Archlinux"
+	echo "https://arch-tui-installer.github.io"
+	echo
+	echo "--skip-update  Run Setup without Updating"
+	echo "--debug        Run Setup in Debugmode"
+	exit
+fi
 dialog --title "Updater" --extra-button --extra-label "Quit" --msgbox "The Updater will update the Setup to be up to date.\nTo do that, you must be connected to the internet.\nPlease make sure you are connected to the internet." 0 0
 if [[ $? == 3 ]]; then
 	exit
@@ -11,4 +26,6 @@ if [[ ! -d /var/setup/git ]]; then
 fi
 (cd /var/setup/git && git pull --quiet | dialog --title "Updating..." --infobox "Git-Repository is beeing updated..." 3 45)
 /var/setup/git/updating/update-files
-setup
+if [[ $* = *"--debug"* ]]; then
+	setup --debug
+fi
