@@ -42,6 +42,7 @@ case $slan in
         es) libreoffice=libreoffice-still-es ;;
 esac
 if [[ $de == kde ]]; then
+        iaur firefox-appmenu
         pacman --ignore konqueror --noconfirm --needed -Sy xorg sddm plasma kde-applications vlc papirus-icon-theme materia-kde archlinux-wallpaper $libreoffice
         systemctl enable sddm
 elif [[ $de == gnome ]]; then
