@@ -24,4 +24,5 @@ cp /var/setup/git/installed/lang.conf /var/setup/installed.conf | upfile "/insta
 chmod +x /usr/local/bin/setup | chmodfile "/setup"
 chmod +x /usr/local/bin/2step | chmodfile "/2step"
 
-dialog --infobox "Updating finished"
+dialog --infobox "Updating finished" 3 45
+sleep 1s
