@@ -389,6 +389,7 @@ if [[ $extparted = *"separate-home"* ]]; then
 	mkdir -p /target/home
 	mount "$x2" /target/home
 	if [[ $x2fs == btrfs ]]; then
+		echo "Please note: This is not a bug! The Partition will be unmounted later and correctly mounted:"
 		btrfs subvolume create /target/home/@home
 		umount /target/home
 		mount -o noatime,compress=zstd,space_cache=v2,ssd,discard=async,subvol=@home $x2 /target/home
