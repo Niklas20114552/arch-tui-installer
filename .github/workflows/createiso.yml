@@ -1,0 +1,57 @@
+name: Docker Action
+
+on:
+  pull_request:
+    types:
+      - closed
+      - reopened
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'testing'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: docker/setup-docker@v1
+        
+      - name: Build and run Docker container
+        run: |
+          docker pull archlinux
+          docker run --name my-container -v ${{ github.workspace }}:/app archlinux /bin/bash -c "pacman -Sy --noconfirm git && git clone --recursive https://github.com/arch-tui-installer/arch-tui-installer-isomaker.git && cd arch-tui-installer-isomaker && bash mkiso.sh"
+          mv /app/arch-tui-installer-isomaker/out/*.iso /app/archlinux-tui-setup.iso
+          
+      - name: Generate release description
+        run: |
+          echo "### Checksums:" > ${{ github.workspace }}/release_description.txt
+          echo "SHA256SUM: \`$(sha256sum /app/archlinux-tui-setup.iso | awk '{print $1}')\`" >> ${{ github.workspace }}/release_description.txt
+          echo "MD5SUM: \`$(md5sum /app/archlinux-tui-setup.iso | awk '{print $1}')\`" >> ${{ github.workspace }}/release_description.txt
+          echo "SHA512SUM: \`$(sha512sum /app/archlinux-tui-setup.iso | awk '{print $1}')\`" >> ${{ github.workspace }}/release_description.txt
+          echo "" >> ${{ github.workspace }}/release_description.txt
+          echo "**Iso was made on: $(date +'%Y.%m.%d')**" >> ${{ github.workspace }}/release_description.txt
+
+      - name: Create Release Draft
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: isodraft
+          release_name: Automatic created Iso Draft
+          draft: true
+          body_path: ${{ github.workspace }}/release_description.txt
+
+      - name: Upload ISO to Release Draft
+        id: upload_asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: /app/archlinux-tui-setup.iso
+          asset_name: archlinux-tui-setup.iso
+          asset_content_type: application/octet-stream
