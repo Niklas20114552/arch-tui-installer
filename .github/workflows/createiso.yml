@@ -9,15 +9,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'testing'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Set up Docker
-        uses: docker/setup-docker@v1
+        uses: docker-practice/actions-setup-docker@master
         
       - name: Build and run Docker container
         run: |
